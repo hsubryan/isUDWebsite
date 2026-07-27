@@ -201,7 +201,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
     project.status === 'ONGOING' && project.currentSubmission?.status === 'REJECTED'
       ? project.currentSubmission.reviewNote
       : null;
-  const showEditActions = !isReadOnly && !isReviewLocked && !isCertified;
+  const showEditActions = !isReadOnly && !isReviewLocked;
   const submitTitle = isSubmitted
     ? 'Project has been submitted for approval.'
     : isCertified
@@ -371,10 +371,10 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
         <div className="flex gap-3 flex-wrap">
           <Link href={`/projects/${id}/checklist`}>
             <Button variant="primary" className="gap-2 text-sm">
-              <ClipboardCheck size={16} /> {isReadOnly ? 'View Checklist' : 'Edit Solutions'}
+              <ClipboardCheck size={16} /> {isReadOnly || isCertified ? 'View Checklist' : 'Edit Solutions'}
             </Button>
           </Link>
-          {!isReadOnly && !isReviewLocked && !isCertified && (
+          {showEditActions && (
             <Link href={`/projects/${id}/edit`}>
               <Button variant="primary" className="gap-2 text-sm">
                 <Edit size={16} /> Edit Project Details
@@ -572,7 +572,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
               ))}
             </div>
 
-            {showEditActions && (
+            {showEditActions && !isCertified && (
               <div className="mt-6 flex justify-end">
                 <Link href={`/projects/${id}/checklist`} className="text-xs text-secondary flex items-center gap-1 hover:underline">
                   <Edit size={12} /> Edit

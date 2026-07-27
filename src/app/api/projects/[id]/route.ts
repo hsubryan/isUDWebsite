@@ -194,7 +194,11 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized: missing edit permissions' }, { status: 403 });
     }
 
-    if (!isProjectEditable(project.status, project.submissions[0]?.editAccessStatus)) {
+    const editableForDetails =
+      isProjectEditable(project.status, project.submissions[0]?.editAccessStatus) ||
+      project.status === 'COMPLETED';
+
+    if (!editableForDetails) {
       return NextResponse.json({ error: 'Project is not editable in its current status' }, { status: 409 });
     }
 
