@@ -5,14 +5,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, ClipboardCheck, ExternalLink, Loader2, Search } from 'lucide-react';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 
-type ApprovalStatus = 'pending' | 'approved';
+type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
 type ProjectApproval = {
   id: string;
-  status: 'PENDING' | 'APPROVED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
   submittedTo: string;
   createdAt: string;
   approvedAt: string | null;
+  rejectedAt: string | null;
+  reviewNote: string | null;
+  editAccessStatus: 'NONE' | 'REQUESTED' | 'GRANTED';
+  editAccessRequestedAt: string | null;
   project: {
     id: string;
     projectNumber: number;
@@ -50,6 +54,8 @@ export default function AdminProjectApprovalsClient() {
   const [approvingId, setApprovingId] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [rejectingId, setRejectingId] = useState('');
+  const [rejectNote, setRejectNote] = useState('');
 
   async function loadApprovals(nextStatus = status) {
     setLoading(true);
@@ -83,7 +89,7 @@ export default function AdminProjectApprovalsClient() {
     );
   }, [items, query]);
 
-  async function approveSubmission(item: ProjectApproval) {
+  async function runAction(item: ProjectApproval, action: 'approve' | 'reject' | 'grantEdit', note?: string) {
     setApprovingId(item.id);
     setMessage('');
     setError('');
@@ -91,17 +97,37 @@ export default function AdminProjectApprovalsClient() {
       const response = await fetch('/api/admin/project-approvals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ submissionId: item.id }),
+        body: JSON.stringify({ submissionId: item.id, action, note }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Unable to approve project');
-      setMessage(`${item.project.projectName} has been certified.`);
+      if (!response.ok) throw new Error(data.error || 'Unable to update submission');
+      const successMessage =
+        action === 'approve'
+          ? `${item.project.projectName} has been certified.`
+          : action === 'reject'
+          ? `${item.project.projectName} has been returned to the owner.`
+          : `Edit access granted for ${item.project.projectName}.`;
+      setMessage(successMessage);
+      setRejectingId('');
+      setRejectNote('');
       await loadApprovals(status);
     } catch (err: any) {
-      setError(err.message || 'Unable to approve project');
+      setError(err.message || 'Unable to update submission');
     } finally {
       setApprovingId('');
     }
+  }
+
+  function approveSubmission(item: ProjectApproval) {
+    return runAction(item, 'approve');
+  }
+
+  function grantEditAccess(item: ProjectApproval) {
+    return runAction(item, 'grantEdit');
+  }
+
+  function submitReject(item: ProjectApproval) {
+    return runAction(item, 'reject', rejectNote);
   }
 
   return (
@@ -115,7 +141,7 @@ export default function AdminProjectApprovalsClient() {
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="inline-flex rounded-md border border-slate-200 bg-slate-50 p-1">
-            {(['pending', 'approved'] as ApprovalStatus[]).map((option) => (
+            {(['pending', 'approved', 'rejected'] as ApprovalStatus[]).map((option) => (
               <button
                 key={option}
                 type="button"
@@ -167,9 +193,25 @@ export default function AdminProjectApprovalsClient() {
                     <span className="rounded bg-amber-50 px-2 py-1 text-xs font-bold text-secondary">
                       #{item.project.projectNumber}
                     </span>
-                    <span className={`rounded px-2 py-1 text-xs font-bold ${item.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
-                      {item.status === 'APPROVED' ? 'Certified' : 'Pending approval'}
+                    <span className={`rounded px-2 py-1 text-xs font-bold ${
+                      item.status === 'APPROVED'
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : item.status === 'REJECTED'
+                        ? 'bg-red-50 text-red-700'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {item.status === 'APPROVED' ? 'Certified' : item.status === 'REJECTED' ? 'Rejected' : 'Pending approval'}
                     </span>
+                    {item.editAccessStatus === 'REQUESTED' && (
+                      <span className="rounded bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700">
+                        Edit access requested
+                      </span>
+                    )}
+                    {item.editAccessStatus === 'GRANTED' && (
+                      <span className="rounded bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700">
+                        Edit access granted
+                      </span>
+                    )}
                   </div>
                   <Link href={`/projects/${item.project.id}`} className="mt-2 inline-flex max-w-full items-center gap-2 text-lg font-bold text-primary hover:text-secondary">
                     <span className="truncate">{item.project.projectName}</span>
@@ -184,15 +226,61 @@ export default function AdminProjectApprovalsClient() {
                 </div>
                 <div className="flex flex-col gap-2 lg:items-end">
                   {item.status === 'PENDING' ? (
-                    <button
-                      type="button"
-                      onClick={() => approveSubmission(item)}
-                      disabled={Boolean(approvingId)}
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-bold text-white hover:bg-[#001d3d] disabled:bg-slate-300"
-                    >
-                      {approvingId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                      Approve
-                    </button>
+                    <>
+                      <div className="flex flex-wrap gap-2 lg:justify-end">
+                        <button
+                          type="button"
+                          onClick={() => approveSubmission(item)}
+                          disabled={Boolean(approvingId) || rejectingId === item.id}
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-bold text-white hover:bg-[#001d3d] disabled:bg-slate-300"
+                        >
+                          {approvingId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                          Approve
+                        </button>
+                        {item.editAccessStatus === 'REQUESTED' && (
+                          <button
+                            type="button"
+                            onClick={() => grantEditAccess(item)}
+                            disabled={Boolean(approvingId) || rejectingId === item.id}
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+                          >
+                            Grant Edit Access
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setRejectingId(rejectingId === item.id ? '' : item.id)}
+                          disabled={Boolean(approvingId)}
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-red-200 px-4 text-sm font-bold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                      {rejectingId === item.id && (
+                        <div className="flex flex-col gap-2 lg:items-end">
+                          <textarea
+                            value={rejectNote}
+                            onChange={(event) => setRejectNote(event.target.value)}
+                            placeholder="Optional note for the project owner"
+                            className="h-20 w-full rounded-md border border-slate-200 p-2 text-sm lg:w-80"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => submitReject(item)}
+                            disabled={Boolean(approvingId)}
+                            className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-red-600 px-4 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                          >
+                            {approvingId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                            Confirm Reject
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : item.status === 'REJECTED' ? (
+                    <div className="text-right text-sm font-semibold text-red-700">
+                      Rejected {formatDate(item.rejectedAt)}
+                      {item.reviewNote && <div className="mt-1 text-xs font-medium text-slate-500">{item.reviewNote}</div>}
+                    </div>
                   ) : (
                     <div className="text-right text-sm font-semibold text-emerald-700">
                       Approved {formatDate(item.approvedAt)}

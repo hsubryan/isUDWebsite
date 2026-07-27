@@ -9,6 +9,10 @@ function normalizeSubmission(submission: any) {
     submittedTo: submission.submittedTo,
     createdAt: submission.createdAt,
     approvedAt: submission.approvedAt,
+    rejectedAt: submission.rejectedAt,
+    reviewNote: submission.reviewNote,
+    editAccessStatus: submission.editAccessStatus,
+    editAccessRequestedAt: submission.editAccessRequestedAt,
     project: {
       id: submission.project.id,
       projectNumber: submission.project.projectNumber,
@@ -32,7 +36,9 @@ export async function GET(req: Request) {
   const { error } = await requireAdminSession();
   if (error) return error;
 
-  const status = new URL(req.url).searchParams.get('status') === 'approved' ? 'APPROVED' : 'PENDING';
+  const statusParam = new URL(req.url).searchParams.get('status');
+  const status =
+    statusParam === 'approved' ? 'APPROVED' : statusParam === 'rejected' ? 'REJECTED' : 'PENDING';
   const submissions = await prisma.projectSubmission.findMany({
     where: { status },
     orderBy: { createdAt: 'desc' },
@@ -69,9 +75,12 @@ export async function POST(req: Request) {
   if (error) return error;
 
   try {
-    const { submissionId } = await req.json();
+    const { submissionId, action, note } = await req.json();
     if (!submissionId || typeof submissionId !== 'string') {
       return NextResponse.json({ error: 'Submission ID is required' }, { status: 400 });
+    }
+    if (!['approve', 'reject', 'grantEdit'].includes(action)) {
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
     const submission = await prisma.projectSubmission.findFirst({
@@ -82,6 +91,7 @@ export async function POST(req: Request) {
       select: {
         id: true,
         projectId: true,
+        editAccessStatus: true,
       },
     });
 
@@ -89,23 +99,51 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Pending submission not found' }, { status: 404 });
     }
 
-    await prisma.$transaction([
-      prisma.projectSubmission.update({
+    if (action === 'approve') {
+      await prisma.$transaction([
+        prisma.projectSubmission.update({
+          where: { id: submission.id },
+          data: {
+            status: 'APPROVED',
+            approvedAt: new Date(),
+          },
+        }),
+        prisma.project.update({
+          where: { id: submission.projectId },
+          data: { status: 'COMPLETED' },
+        }),
+      ]);
+    } else if (action === 'reject') {
+      await prisma.$transaction([
+        prisma.projectSubmission.update({
+          where: { id: submission.id },
+          data: {
+            status: 'REJECTED',
+            rejectedAt: new Date(),
+            reviewNote: typeof note === 'string' && note.trim() ? note.trim() : null,
+          },
+        }),
+        prisma.project.update({
+          where: { id: submission.projectId },
+          data: { status: 'ONGOING' },
+        }),
+      ]);
+    } else {
+      if (submission.editAccessStatus !== 'REQUESTED') {
+        return NextResponse.json({ error: 'Edit access was not requested for this submission' }, { status: 409 });
+      }
+      await prisma.projectSubmission.update({
         where: { id: submission.id },
         data: {
-          status: 'APPROVED',
-          approvedAt: new Date(),
+          editAccessStatus: 'GRANTED',
+          editAccessGrantedAt: new Date(),
         },
-      }),
-      prisma.project.update({
-        where: { id: submission.projectId },
-        data: { status: 'COMPLETED' },
-      }),
-    ]);
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (approvalError: any) {
     console.error('[ADMIN_PROJECT_APPROVAL_ERROR]', approvalError);
-    return NextResponse.json({ error: approvalError?.message || 'Unable to approve project' }, { status: 500 });
+    return NextResponse.json({ error: approvalError?.message || 'Unable to process submission' }, { status: 500 });
   }
 }

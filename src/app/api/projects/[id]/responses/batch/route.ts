@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getCachedScoringLibrary } from '@/lib/libraryCache';
 import { calculateProjectScore } from '@/lib/scoring';
+import { isProjectEditable } from '@/lib/projectEditability';
 
 const validResponseStatuses = new Set(Object.values(ResponseStatus));
 
@@ -42,6 +43,11 @@ export async function POST(
         teamMembers: {
           where: { userId },
         },
+        submissions: {
+          where: { status: 'PENDING' },
+          take: 1,
+          select: { editAccessStatus: true },
+        },
       },
     });
 
@@ -70,7 +76,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized: Read-only access or missing permissions' }, { status: 403 });
     }
 
-    if (project.status !== 'ONGOING') {
+    if (!isProjectEditable(project.status, project.submissions[0]?.editAccessStatus)) {
       return NextResponse.json({ error: 'Project is not editable in its current status' }, { status: 409 });
     }
 

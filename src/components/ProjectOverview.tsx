@@ -42,6 +42,12 @@ interface ProjectData {
   bonus: number;
   userRole: string;
   userStatus: string;
+  currentSubmission: {
+    id: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    editAccessStatus: 'NONE' | 'REQUESTED' | 'GRANTED';
+    reviewNote: string | null;
+  } | null;
   certificationStatus?: {
     failedSections: string[];
     missingMandatorySections: string[];
@@ -124,6 +130,8 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
   const [cardFormData, setCardFormData] = useState<Record<string, string>>({});
   const [savingCard, setSavingCard] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
+  const [isRequestingEdit, setIsRequestingEdit] = useState(false);
+  const [requestEditError, setRequestEditError] = useState<string | null>(null);
 
   const isReadOnly = project?.userRole === 'VIEWER' || project?.userStatus === 'PENDING';
 
@@ -186,6 +194,14 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
     project.certificationStatus?.isThresholdMet &&
     project.certificationStatus?.isMandatoryMet
   );
+
+  const editAccessStatus = project.currentSubmission?.editAccessStatus ?? 'NONE';
+  const isReviewLocked = isSubmitted && editAccessStatus !== 'GRANTED';
+  const rejectionNote =
+    project.status === 'ONGOING' && project.currentSubmission?.status === 'REJECTED'
+      ? project.currentSubmission.reviewNote
+      : null;
+  const showEditActions = !isReadOnly && !isReviewLocked;
   const submitTitle = isSubmitted
     ? 'Project has been submitted for approval.'
     : isCertified
@@ -216,6 +232,38 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
       setSubmitMessage(error.message || 'Unable to submit project.');
     } finally {
       setIsSubmittingProject(false);
+    }
+  };
+
+  const handleRequestEditAccess = async () => {
+    if (isRequestingEdit || editAccessStatus !== 'NONE') return;
+    setIsRequestingEdit(true);
+    setRequestEditError(null);
+
+    try {
+      const response = await fetch(`/api/projects/${id}/submit/request-edit`, {
+        method: 'POST',
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to request edit access.');
+      }
+
+      setProject((current) =>
+        current
+          ? {
+              ...current,
+              currentSubmission: current.currentSubmission
+                ? { ...current.currentSubmission, editAccessStatus: 'REQUESTED' }
+                : current.currentSubmission,
+            }
+          : current
+      );
+    } catch (error: any) {
+      setRequestEditError(error.message || 'Unable to request edit access.');
+    } finally {
+      setIsRequestingEdit(false);
     }
   };
 
@@ -323,28 +371,28 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
         <div className="flex gap-3 flex-wrap">
           <Link href={`/projects/${id}/checklist`}>
             <Button variant="primary" className="gap-2 text-sm">
-              <ClipboardCheck size={16} /> {isReadOnly ? 'View Checklist' : 'Edit Solutions'}
+              <ClipboardCheck size={16} /> {isReadOnly || isCertified ? 'View Checklist' : 'Edit Solutions'}
             </Button>
           </Link>
-          {!isReadOnly && (
-            <>
-              <Link href={`/projects/${id}/edit`}>
-                <Button variant="primary" className="gap-2 text-sm">
-                  <Edit size={16} /> Edit Project Details
-                </Button>
-              </Link>
-              <Button
-                variant="secondary"
-                className="gap-2 text-sm disabled:bg-slate-400"
-                disabled={!canSubmitProject || isSubmittingProject}
-                title={submitTitle}
-                aria-disabled={!canSubmitProject}
-                onClick={handleSubmitProject}
-              >
-                {isSubmittingProject ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                {isSubmittingProject ? 'Submitting...' : submitButtonLabel}
+          {showEditActions && (
+            <Link href={`/projects/${id}/edit`}>
+              <Button variant="primary" className="gap-2 text-sm">
+                <Edit size={16} /> Edit Project Details
               </Button>
-            </>
+            </Link>
+          )}
+          {!isReadOnly && (
+            <Button
+              variant="secondary"
+              className="gap-2 text-sm disabled:bg-slate-400"
+              disabled={!canSubmitProject || isSubmittingProject}
+              title={submitTitle}
+              aria-disabled={!canSubmitProject}
+              onClick={handleSubmitProject}
+            >
+              {isSubmittingProject ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              {isSubmittingProject ? 'Submitting...' : submitButtonLabel}
+            </Button>
           )}
         </div>
       </div>
@@ -352,6 +400,45 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
       {submitMessage && (
         <div className="rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
           {submitMessage}
+        </div>
+      )}
+
+      {isReviewLocked && editAccessStatus === 'NONE' && (
+        <div className="flex flex-col gap-2 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 sm:flex-row sm:items-center sm:justify-between">
+          <span>This project is under review and locked for edits.</span>
+          <button
+            type="button"
+            onClick={handleRequestEditAccess}
+            disabled={isRequestingEdit}
+            className="inline-flex items-center gap-2 rounded-sm bg-amber-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-700 disabled:opacity-50"
+          >
+            {isRequestingEdit ? <Loader2 size={14} className="animate-spin" /> : null}
+            {isRequestingEdit ? 'Requesting...' : 'Request Edit Access'}
+          </button>
+        </div>
+      )}
+
+      {isReviewLocked && editAccessStatus === 'REQUESTED' && (
+        <div className="rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+          Edit access requested — waiting on admin approval.
+        </div>
+      )}
+
+      {isSubmitted && editAccessStatus === 'GRANTED' && (
+        <div className="rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+          Edit access granted — changes you make are visible to the reviewing admin.
+        </div>
+      )}
+
+      {requestEditError && (
+        <div className="rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          {requestEditError}
+        </div>
+      )}
+
+      {rejectionNote && (
+        <div className="rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          Your last submission was returned: {rejectionNote}
         </div>
       )}
 
@@ -409,7 +496,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
                 <p><span className="font-bold text-slate-700">Building Area:</span> {project.buildingArea || '0'} sq.ft.</p>
               </div>
             )}
-            {!isReadOnly && editingCard !== 'projectInfo' && (
+            {showEditActions && editingCard !== 'projectInfo' && (
               <div className="mt-4 flex justify-end">
                 <button type="button" onClick={() => startEditingCard('projectInfo')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
                   <Edit size={12} /> Edit
@@ -440,7 +527,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
               <p><span className="font-bold text-slate-700">Architect:</span> {project.firmName || '-'}</p>
             </div>
             )}
-            {!isReadOnly && editingCard !== 'contactInfo' && (
+            {showEditActions && editingCard !== 'contactInfo' && (
               <div className="mt-4 flex justify-end">
                 <button type="button" onClick={() => startEditingCard('contactInfo')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
                   <Edit size={12} /> Edit
@@ -485,7 +572,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
               ))}
             </div>
 
-            {!isReadOnly && (
+            {showEditActions && !isCertified && (
               <div className="mt-6 flex justify-end">
                 <Link href={`/projects/${id}/checklist`} className="text-xs text-secondary flex items-center gap-1 hover:underline">
                   <Edit size={12} /> Edit
@@ -556,7 +643,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
             ) : (
               <h2 className="text-lg font-bold text-primary mb-2">Certification: <span className="font-normal">{project.certification}</span></h2>
             )}
-            {!isReadOnly && editingCard !== 'certification' && (
+            {showEditActions && editingCard !== 'certification' && (
               <div className="mt-3 flex justify-end">
                 <button type="button" onClick={() => startEditingCard('certification')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
                   <Edit size={12} /> Edit

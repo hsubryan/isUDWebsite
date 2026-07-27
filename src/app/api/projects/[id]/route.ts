@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { getCachedScoringLibrary } from '@/lib/libraryCache';
 import { calculateProjectScore } from '@/lib/scoring';
 import { sortChecklistHierarchy } from '@/lib/naturalSort';
+import { isProjectEditable } from '@/lib/projectEditability';
 
 export async function GET(
   req: Request,
@@ -48,7 +49,22 @@ export async function GET(
         sectionToggles: true,
         teamMembers: {
           where: { userId },
-        }
+        },
+        submissions: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: {
+            id: true,
+            status: true,
+            editAccessStatus: true,
+            editAccessRequestedAt: true,
+            editAccessGrantedAt: true,
+            reviewNote: true,
+            rejectedAt: true,
+            approvedAt: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
@@ -108,8 +124,11 @@ export async function GET(
         : 0;
     const certificationThreshold = 78;
 
+    const { submissions, ...projectFields } = project;
+
     return NextResponse.json({
-      ...project,
+      ...projectFields,
+      currentSubmission: submissions[0] || null,
       userRole,
       userStatus: membership?.status || 'ACTIVE', // Owners are always ACTIVE
       chapterScores: formattedChapterScores,
@@ -153,6 +172,11 @@ export async function PATCH(
         teamMembers: {
           where: { userId },
         },
+        submissions: {
+          where: { status: 'PENDING' },
+          take: 1,
+          select: { editAccessStatus: true },
+        },
       },
     });
 
@@ -170,7 +194,11 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized: missing edit permissions' }, { status: 403 });
     }
 
-    if (project.status !== 'ONGOING') {
+    const editableForDetails =
+      isProjectEditable(project.status, project.submissions[0]?.editAccessStatus) ||
+      project.status === 'COMPLETED';
+
+    if (!editableForDetails) {
       return NextResponse.json({ error: 'Project is not editable in its current status' }, { status: 409 });
     }
 
