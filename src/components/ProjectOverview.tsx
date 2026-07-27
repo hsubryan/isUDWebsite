@@ -201,7 +201,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
     project.status === 'ONGOING' && project.currentSubmission?.status === 'REJECTED'
       ? project.currentSubmission.reviewNote
       : null;
-  const showEditActions = !isReadOnly && !isReviewLocked;
+  const showEditActions = !isReadOnly && !isReviewLocked && !isCertified;
   const submitTitle = isSubmitted
     ? 'Project has been submitted for approval.'
     : isCertified
@@ -374,7 +374,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
               <ClipboardCheck size={16} /> {isReadOnly ? 'View Checklist' : 'Edit Solutions'}
             </Button>
           </Link>
-          {!isReadOnly && !isReviewLocked && (
+          {!isReadOnly && !isReviewLocked && !isCertified && (
             <Link href={`/projects/${id}/edit`}>
               <Button variant="primary" className="gap-2 text-sm">
                 <Edit size={16} /> Edit Project Details
