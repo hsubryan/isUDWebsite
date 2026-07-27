@@ -304,15 +304,20 @@ model ProjectResponse {
 }
 
 model ProjectSubmission {
-  id          String           @id @default(uuid())
-  projectId   String
-  tokenHash   String           @unique
-  status      SubmissionStatus @default(PENDING)
-  submittedTo String
-  approvedAt  DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id                    String            @id @default(uuid())
+  projectId             String
+  tokenHash             String            @unique
+  status                SubmissionStatus  @default(PENDING)
+  submittedTo           String
+  approvedAt            DateTime?
+  rejectedAt            DateTime?
+  reviewNote            String?
+  editAccessStatus      EditAccessStatus  @default(NONE)
+  editAccessRequestedAt DateTime?
+  editAccessGrantedAt   DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  project               Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId, status])
 }
@@ -339,4 +344,11 @@ enum ResponseStatus {
 enum SubmissionStatus {
   PENDING
   APPROVED
+  REJECTED
+}
+
+enum EditAccessStatus {
+  NONE
+  REQUESTED
+  GRANTED
 }
