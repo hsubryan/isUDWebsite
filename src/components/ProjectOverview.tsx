@@ -641,7 +641,10 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
                 <CardEditActions onSave={saveCard} onCancel={cancelEditingCard} saving={savingCard} />
               </div>
             ) : (
-              <h2 className="text-lg font-bold text-primary mb-2">Certification: <span className="font-normal">{project.certification}</span></h2>
+              <div>
+                <h2 className="text-lg font-bold text-primary mb-4">Certification</h2>
+                <p className="text-sm"><span className="font-bold text-slate-700">Type:</span> {project.certification}</p>
+              </div>
             )}
             {showEditActions && editingCard !== 'certification' && (
               <div className="mt-3 flex justify-end">
