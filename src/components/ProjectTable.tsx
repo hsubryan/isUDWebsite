@@ -8,7 +8,7 @@ import { getCached, setCached } from '@/lib/clientCache';
 
 const PROJECTS_CACHE_KEY = 'projects:list';
 
-const tableHeaders = ['Name', 'Owner', 'Status', 'Date', 'Score'];
+const tableHeaders = ['Name', 'Owner', 'Status', 'Created Date', 'Score'];
 
 function formatProjectDate(value: string | null | undefined) {
   if (!value) return '—';
@@ -54,9 +54,9 @@ function getDisplayScore(project: any) {
   return project.scorePercentage ?? ((project.totalEarned || project.score || 0) + (project.bonus || 0));
 }
 
-const tableColumnClass = 'grid-cols-[minmax(140px,1fr)_minmax(120px,1fr)_130px_170px_90px]';
+const tableColumnClass = 'grid-cols-[minmax(120px,1fr)_minmax(100px,1fr)_120px_210px_80px]';
 const primaryLinkClass = 'inline-flex items-center justify-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-all duration-200 hover:bg-[#002855] focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 active:scale-95';
-const accentLinkClass = 'inline-flex items-center justify-center gap-2 rounded-sm bg-accent px-5 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-all duration-200 hover:bg-[#d97c0c] focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 active:scale-95';
+const accentLinkClass = 'inline-flex items-center justify-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-all duration-200 hover:bg-[#002855] focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 active:scale-95';
 
 export default function ProjectTable() {
   const { data: session } = useSession();
@@ -231,7 +231,7 @@ export default function ProjectTable() {
               className={`rounded-sm px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${
                 ownershipFilter === tab.value
                   ? 'bg-accent text-white shadow-sm'
-                  : 'text-primary hover:bg-primary/10'
+                  : 'bg-primary/15 text-primary hover:bg-primary/25'
               }`}
             >
               {tab.label}
