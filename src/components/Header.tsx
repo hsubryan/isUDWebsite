@@ -34,7 +34,7 @@ export default function Header() {
                 alt="isUD - Innovative solutions for Universal Design"
                 width={283}
                 height={118}
-                className="h-10 w-auto"
+                className="h-14 w-auto"
                 priority
               />
             </Link>

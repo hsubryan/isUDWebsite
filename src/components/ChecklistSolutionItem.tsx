@@ -121,10 +121,8 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
                     unoptimized
                   />
                 )}
-                {(figure.caption || figure.number) && (
+                {figure.caption && (
                   <figcaption className="mt-3 text-center text-xs leading-5 text-slate-600">
-                    {figure.number && <span className="font-bold text-primary">{figure.number.replace('.png', '')}</span>}
-                    {figure.number && figure.caption ? ': ' : ''}
                     {figure.caption}
                   </figcaption>
                 )}
