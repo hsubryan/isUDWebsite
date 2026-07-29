@@ -54,7 +54,7 @@ function getDisplayScore(project: any) {
   return project.scorePercentage ?? ((project.totalEarned || project.score || 0) + (project.bonus || 0));
 }
 
-const tableColumnClass = 'grid-cols-[minmax(200px,1fr)_minmax(160px,1fr)_140px_160px_100px]';
+const tableColumnClass = 'grid-cols-[minmax(140px,1fr)_minmax(120px,1fr)_130px_170px_90px]';
 const primaryLinkClass = 'inline-flex items-center justify-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-all duration-200 hover:bg-[#002855] focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 active:scale-95';
 const accentLinkClass = 'inline-flex items-center justify-center gap-2 rounded-sm bg-accent px-5 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-all duration-200 hover:bg-[#d97c0c] focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 active:scale-95';
 
@@ -218,7 +218,7 @@ export default function ProjectTable() {
       {/* Page Title Bar */}
       <div className="bg-white border border-slate-200 rounded-sm px-6 py-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <h1 className="text-xl font-bold text-primary tracking-tight">My Projects</h1>
-        <div className="flex items-center gap-1 rounded-sm border border-slate-200 bg-slate-50 p-1">
+        <div className="flex items-center gap-1 rounded-sm border border-primary/20 bg-primary/5 p-1">
           {([
             { value: 'ALL', label: 'All Projects' },
             { value: 'MINE', label: 'My Projects' },
@@ -230,8 +230,8 @@ export default function ProjectTable() {
               onClick={() => setOwnershipFilter(tab.value)}
               className={`rounded-sm px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${
                 ownershipFilter === tab.value
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-slate-500 hover:bg-white hover:text-primary'
+                  ? 'bg-accent text-white shadow-sm'
+                  : 'text-primary hover:bg-primary/10'
               }`}
             >
               {tab.label}
@@ -416,7 +416,7 @@ export default function ProjectTable() {
                             {projectStatusLabels[project.status] || project.status.replace('_', ' ')}
                           </span>
                         </div>
-                        <div className="px-6 py-3 text-sm text-slate-600 text-center">
+                        <div className="px-6 py-3 text-sm text-slate-600 text-center whitespace-nowrap">
                           {formatProjectDate(project.createdAt)}
                         </div>
                         <div className="px-6 py-3 text-center">

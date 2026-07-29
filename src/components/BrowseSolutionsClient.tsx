@@ -227,7 +227,7 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
                       onClick={() => setActiveSectionId('')}
                       className={cn(
                         'w-full rounded-sm px-3 py-2 text-left text-sm font-bold transition-colors',
-                        activeSectionId === '' ? 'bg-primary text-white' : 'text-slate-700 hover:bg-slate-50'
+                        activeSectionId === '' ? 'bg-accent text-white' : 'text-primary hover:bg-primary/10'
                       )}
                     >
                       All Sections
@@ -239,14 +239,14 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
                         onClick={() => setActiveSectionId(section.id)}
                         className={cn(
                           'w-full rounded-sm px-3 py-2 text-left transition-colors',
-                          activeSectionId === section.id ? 'bg-primary text-white' : 'text-slate-700 hover:bg-slate-50'
+                          activeSectionId === section.id ? 'bg-accent text-white' : 'text-primary hover:bg-primary/10'
                         )}
                       >
                         <div className="flex gap-2">
                           <span className="font-bold">{activeChapter.number}.{section.number}</span>
                           <span className="text-sm font-semibold">{section.title}</span>
                         </div>
-                        <div className={cn('mt-0.5 text-xs', activeSectionId === section.id ? 'text-white/75' : 'text-slate-400')}>
+                        <div className={cn('mt-0.5 text-xs', activeSectionId === section.id ? 'text-white/80' : 'text-primary/50')}>
                           {section.totalCredits} credits · {section.solutions.length} solutions
                         </div>
                       </button>
