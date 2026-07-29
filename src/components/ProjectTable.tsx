@@ -12,7 +12,7 @@ const tableHeaders = ['Name', 'Owner', 'Status', 'Date', 'Score'];
 
 function formatProjectDate(value: string | null | undefined) {
   if (!value) return '—';
-  return new Date(value).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  return new Date(value).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 const projectStatusLabels: Record<string, string> = {
@@ -54,7 +54,7 @@ function getDisplayScore(project: any) {
   return project.scorePercentage ?? ((project.totalEarned || project.score || 0) + (project.bonus || 0));
 }
 
-const tableColumnClass = 'grid-cols-[minmax(240px,1fr)_minmax(200px,1fr)_150px_130px_120px]';
+const tableColumnClass = 'grid-cols-[minmax(200px,1fr)_minmax(160px,1fr)_140px_160px_100px]';
 const primaryLinkClass = 'inline-flex items-center justify-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-all duration-200 hover:bg-[#002855] focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 active:scale-95';
 const accentLinkClass = 'inline-flex items-center justify-center gap-2 rounded-sm bg-accent px-5 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-all duration-200 hover:bg-[#d97c0c] focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 active:scale-95';
 
