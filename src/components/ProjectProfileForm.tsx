@@ -384,13 +384,13 @@ export default function ProjectProfileForm({
              <div className="w-8 h-8 rounded-full border-2 border-slate-800 flex items-center justify-center font-bold text-lg">3</div>
              <h3 className="text-xl font-bold text-slate-800">Potential Services Needed</h3>
           </div>
-          <p className="text-xs text-slate-500 leading-tight">
+          <p className="text-[13px] text-slate-600 leading-tight">
             (Select all of the <span className="text-[#002a54] font-bold">isUD services</span> you may be interested in for this project)
           </p>
 
           <div className="space-y-6">
             <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-800 block">isUD Certification <span className="text-red-500">*</span></label>
+              <label className="text-sm font-bold text-slate-800 block">Would you like isUD Certification? <span className="text-red-500">*</span></label>
               <div className="flex gap-6">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="radio" name="certification" value="Guided Certification" checked={formData.certification === 'Guided Certification'} onChange={handleInputChange} className="w-4 h-4 text-secondary focus:ring-secondary border-slate-300" />
@@ -404,15 +404,35 @@ export default function ProjectProfileForm({
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-800 block">Other Services Available</label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-800">Are you interested in any other isUD services?</label>
+                <label className="flex items-center gap-2 cursor-pointer group text-sm text-slate-600 font-medium">
+                  {(() => {
+                    const allChecked = serviceOptions.every((option) => formData.services.includes(option));
+                    return (
+                      <>
+                        <input
+                          type="checkbox"
+                          className="peer sr-only"
+                          checked={allChecked}
+                          onChange={() => handleCheckboxChange('services', 'Select All')}
+                        />
+                        <span className={`w-4 h-4 rounded border flex items-center justify-center transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-secondary peer-focus-visible:ring-offset-2 ${
+                          allChecked ? 'bg-secondary border-secondary' : 'bg-slate-100 border-slate-300 group-hover:border-slate-400'
+                        }`}>
+                          {allChecked && <Check size={12} className="text-white" aria-hidden="true" />}
+                        </span>
+                        Select All
+                      </>
+                    );
+                  })()}
+                </label>
+              </div>
               <div className="space-y-2">
-                {['Select All', ...serviceOptions].map((service) => (
+                {serviceOptions.map((service) => (
                   <label key={service} className="flex items-center gap-2 cursor-pointer group">
                     {(() => {
-                      const checked = service === 'Select All'
-                        ? serviceOptions.every((option) => formData.services.includes(option))
-                        : formData.services.includes(service);
-
+                      const checked = formData.services.includes(service);
                       return (
                         <>
                           <input
@@ -446,7 +466,7 @@ export default function ProjectProfileForm({
            <div className="w-8 h-8 rounded-full border-2 border-slate-800 flex items-center justify-center font-bold text-lg">4</div>
            <div className="flex items-baseline gap-2">
              <h3 className="text-xl font-bold text-slate-800">Facility Uses</h3>
-             <span className="text-xs text-slate-500">(Select all that apply)</span>
+             <span className="text-[13px] text-slate-600">(Select all that apply)</span>
            </div>
         </div>
 
