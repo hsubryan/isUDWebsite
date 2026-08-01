@@ -499,7 +499,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
             {showEditActions && editingCard !== 'projectInfo' && (
               <div className="mt-4 flex justify-end">
                 <button type="button" onClick={() => startEditingCard('projectInfo')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
-                  <Edit size={12} /> Edit
+                  <Edit size={12} /> Edit Project
                 </button>
               </div>
             )}
@@ -530,7 +530,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
             {showEditActions && editingCard !== 'contactInfo' && (
               <div className="mt-4 flex justify-end">
                 <button type="button" onClick={() => startEditingCard('contactInfo')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
-                  <Edit size={12} /> Edit
+                  <Edit size={12} /> Edit Contact
                 </button>
               </div>
             )}
@@ -672,11 +672,6 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
               <Link href={`/projects/${id}/team`} className="text-xs text-secondary flex items-center gap-1 hover:underline">
                 {isReadOnly ? <ClipboardCheck size={12} /> : <Edit size={12} />} {isReadOnly ? 'View Team' : 'Edit Team'}
               </Link>
-              {!isReadOnly && (
-                <Link href={`/projects/${id}/team`} className="text-xs text-secondary flex items-center gap-1 hover:underline">
-                  + Add Member
-                </Link>
-              )}
             </div>
           </div>
         </div>
