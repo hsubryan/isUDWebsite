@@ -231,7 +231,7 @@ export default function ProjectTable() {
               className={`rounded-sm px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${
                 ownershipFilter === tab.value
                   ? 'bg-accent text-white shadow-sm'
-                  : 'bg-primary/15 text-primary hover:bg-primary/25'
+                  : 'bg-primary text-white hover:bg-primary/85'
               }`}
             >
               {tab.label}
