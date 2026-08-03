@@ -45,7 +45,6 @@ interface ProjectData {
   currentSubmission: {
     id: string;
     status: 'PENDING' | 'APPROVED' | 'REJECTED';
-    editAccessStatus: 'NONE' | 'REQUESTED' | 'GRANTED';
     reviewNote: string | null;
   } | null;
   certificationStatus?: {
@@ -130,8 +129,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
   const [cardFormData, setCardFormData] = useState<Record<string, string>>({});
   const [savingCard, setSavingCard] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
-  const [isRequestingEdit, setIsRequestingEdit] = useState(false);
-  const [requestEditError, setRequestEditError] = useState<string | null>(null);
+  const [showLockedModal, setShowLockedModal] = useState(false);
 
   const isReadOnly = project?.userRole === 'VIEWER' || project?.userStatus === 'PENDING';
 
@@ -195,13 +193,11 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
     project.certificationStatus?.isMandatoryMet
   );
 
-  const editAccessStatus = project.currentSubmission?.editAccessStatus ?? 'NONE';
-  const isReviewLocked = isSubmitted && editAccessStatus !== 'GRANTED';
+  const isEditLocked = isSubmitted && !isReadOnly;
   const rejectionNote =
     project.status === 'ONGOING' && project.currentSubmission?.status === 'REJECTED'
       ? project.currentSubmission.reviewNote
       : null;
-  const showEditActions = !isReadOnly && !isReviewLocked;
   const submitTitle = isSubmitted
     ? 'Project has been submitted for approval.'
     : isCertified
@@ -235,36 +231,19 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
     }
   };
 
-  const handleRequestEditAccess = async () => {
-    if (isRequestingEdit || editAccessStatus !== 'NONE') return;
-    setIsRequestingEdit(true);
-    setRequestEditError(null);
-
-    try {
-      const response = await fetch(`/api/projects/${id}/submit/request-edit`, {
-        method: 'POST',
-      });
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Unable to request edit access.');
-      }
-
-      setProject((current) =>
-        current
-          ? {
-              ...current,
-              currentSubmission: current.currentSubmission
-                ? { ...current.currentSubmission, editAccessStatus: 'REQUESTED' }
-                : current.currentSubmission,
-            }
-          : current
-      );
-    } catch (error: any) {
-      setRequestEditError(error.message || 'Unable to request edit access.');
-    } finally {
-      setIsRequestingEdit(false);
+  const handleLockedLinkClick = (event: React.MouseEvent) => {
+    if (isEditLocked) {
+      event.preventDefault();
+      setShowLockedModal(true);
     }
+  };
+
+  const handleCardEditClick = (card: EditableCard) => {
+    if (isEditLocked) {
+      setShowLockedModal(true);
+      return;
+    }
+    startEditingCard(card);
   };
 
   const startEditingCard = (card: EditableCard) => {
@@ -369,13 +348,13 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
           )}
         </div>
         <div className="flex gap-3 flex-wrap">
-          <Link href={`/projects/${id}/checklist`}>
+          <Link href={`/projects/${id}/checklist`} onClick={handleLockedLinkClick}>
             <Button variant="primary" className="gap-2 text-sm">
               <ClipboardCheck size={16} /> {isReadOnly || isCertified ? 'View Checklist' : 'Edit Solutions'}
             </Button>
           </Link>
-          {showEditActions && (
-            <Link href={`/projects/${id}/edit`}>
+          {!isReadOnly && (
+            <Link href={`/projects/${id}/edit`} onClick={handleLockedLinkClick}>
               <Button variant="primary" className="gap-2 text-sm">
                 <Edit size={16} /> Edit Project Details
               </Button>
@@ -400,39 +379,6 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
       {submitMessage && (
         <div className="rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
           {submitMessage}
-        </div>
-      )}
-
-      {isReviewLocked && editAccessStatus === 'NONE' && (
-        <div className="flex flex-col gap-2 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 sm:flex-row sm:items-center sm:justify-between">
-          <span>This project is under review and locked for edits.</span>
-          <button
-            type="button"
-            onClick={handleRequestEditAccess}
-            disabled={isRequestingEdit}
-            className="inline-flex items-center gap-2 rounded-sm bg-amber-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-700 disabled:opacity-50"
-          >
-            {isRequestingEdit ? <Loader2 size={14} className="animate-spin" /> : null}
-            {isRequestingEdit ? 'Requesting...' : 'Request Edit Access'}
-          </button>
-        </div>
-      )}
-
-      {isReviewLocked && editAccessStatus === 'REQUESTED' && (
-        <div className="rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
-          Edit access requested — waiting on admin approval.
-        </div>
-      )}
-
-      {isSubmitted && editAccessStatus === 'GRANTED' && (
-        <div className="rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-          Edit access granted — changes you make are visible to the reviewing admin.
-        </div>
-      )}
-
-      {requestEditError && (
-        <div className="rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          {requestEditError}
         </div>
       )}
 
@@ -496,9 +442,9 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
                 <p><span className="font-bold text-slate-700">Building Area:</span> {project.buildingArea || '0'} sq.ft.</p>
               </div>
             )}
-            {showEditActions && editingCard !== 'projectInfo' && (
+            {!isReadOnly && editingCard !== 'projectInfo' && (
               <div className="mt-4 flex justify-end">
-                <button type="button" onClick={() => startEditingCard('projectInfo')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
+                <button type="button" onClick={() => handleCardEditClick('projectInfo')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
                   <Edit size={12} /> Edit Project
                 </button>
               </div>
@@ -527,9 +473,9 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
               <p><span className="font-bold text-slate-700">Architect:</span> {project.firmName || '-'}</p>
             </div>
             )}
-            {showEditActions && editingCard !== 'contactInfo' && (
+            {!isReadOnly && editingCard !== 'contactInfo' && (
               <div className="mt-4 flex justify-end">
-                <button type="button" onClick={() => startEditingCard('contactInfo')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
+                <button type="button" onClick={() => handleCardEditClick('contactInfo')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
                   <Edit size={12} /> Edit Contact
                 </button>
               </div>
@@ -572,9 +518,9 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
               ))}
             </div>
 
-            {showEditActions && !isCertified && (
+            {!isReadOnly && !isCertified && (
               <div className="mt-6 flex justify-end">
-                <Link href={`/projects/${id}/checklist`} className="text-xs text-secondary flex items-center gap-1 hover:underline">
+                <Link href={`/projects/${id}/checklist`} onClick={handleLockedLinkClick} className="text-xs text-secondary flex items-center gap-1 hover:underline">
                   <Edit size={12} /> Edit
                 </Link>
               </div>
@@ -646,9 +592,9 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
                 <p className="text-sm"><span className="font-bold text-slate-700">Type:</span> {project.certification}</p>
               </div>
             )}
-            {showEditActions && editingCard !== 'certification' && (
+            {!isReadOnly && editingCard !== 'certification' && (
               <div className="mt-3 flex justify-end">
-                <button type="button" onClick={() => startEditingCard('certification')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
+                <button type="button" onClick={() => handleCardEditClick('certification')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
                   <Edit size={12} /> Edit
                 </button>
               </div>
@@ -676,6 +622,34 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
           </div>
         </div>
       </div>
+
+      {showLockedModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={() => setShowLockedModal(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+            className="w-full max-w-sm rounded-sm bg-white p-6 shadow-xl"
+          >
+            <h2 className="text-lg font-bold text-primary">Project Locked for Review</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              This project is locked while it&apos;s under review. Contact your admin for access or edits.
+            </p>
+            <div className="mt-5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowLockedModal(false)}
+                className="rounded-sm bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-[#002855]"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

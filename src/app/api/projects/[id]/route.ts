@@ -56,9 +56,6 @@ export async function GET(
           select: {
             id: true,
             status: true,
-            editAccessStatus: true,
-            editAccessRequestedAt: true,
-            editAccessGrantedAt: true,
             reviewNote: true,
             rejectedAt: true,
             approvedAt: true,
@@ -172,11 +169,6 @@ export async function PATCH(
         teamMembers: {
           where: { userId },
         },
-        submissions: {
-          where: { status: 'PENDING' },
-          take: 1,
-          select: { editAccessStatus: true },
-        },
       },
     });
 
@@ -194,9 +186,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized: missing edit permissions' }, { status: 403 });
     }
 
-    const editableForDetails =
-      isProjectEditable(project.status, project.submissions[0]?.editAccessStatus) ||
-      project.status === 'COMPLETED';
+    const editableForDetails = isProjectEditable(project.status) || project.status === 'COMPLETED';
 
     if (!editableForDetails) {
       return NextResponse.json({ error: 'Project is not editable in its current status' }, { status: 409 });

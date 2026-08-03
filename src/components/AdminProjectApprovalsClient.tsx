@@ -15,8 +15,6 @@ type ProjectApproval = {
   approvedAt: string | null;
   rejectedAt: string | null;
   reviewNote: string | null;
-  editAccessStatus: 'NONE' | 'REQUESTED' | 'GRANTED';
-  editAccessRequestedAt: string | null;
   project: {
     id: string;
     projectNumber: number;
@@ -89,7 +87,7 @@ export default function AdminProjectApprovalsClient() {
     );
   }, [items, query]);
 
-  async function runAction(item: ProjectApproval, action: 'approve' | 'reject' | 'grantEdit', note?: string) {
+  async function runAction(item: ProjectApproval, action: 'approve' | 'reject', note?: string) {
     setApprovingId(item.id);
     setMessage('');
     setError('');
@@ -104,9 +102,7 @@ export default function AdminProjectApprovalsClient() {
       const successMessage =
         action === 'approve'
           ? `${item.project.projectName} has been certified.`
-          : action === 'reject'
-          ? `${item.project.projectName} has been returned to the owner.`
-          : `Edit access granted for ${item.project.projectName}.`;
+          : `${item.project.projectName} has been returned to the owner.`;
       setMessage(successMessage);
       setRejectingId('');
       setRejectNote('');
@@ -120,10 +116,6 @@ export default function AdminProjectApprovalsClient() {
 
   function approveSubmission(item: ProjectApproval) {
     return runAction(item, 'approve');
-  }
-
-  function grantEditAccess(item: ProjectApproval) {
-    return runAction(item, 'grantEdit');
   }
 
   function submitReject(item: ProjectApproval) {
@@ -202,16 +194,6 @@ export default function AdminProjectApprovalsClient() {
                     }`}>
                       {item.status === 'APPROVED' ? 'Certified' : item.status === 'REJECTED' ? 'Rejected' : 'Pending approval'}
                     </span>
-                    {item.editAccessStatus === 'REQUESTED' && (
-                      <span className="rounded bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700">
-                        Edit access requested
-                      </span>
-                    )}
-                    {item.editAccessStatus === 'GRANTED' && (
-                      <span className="rounded bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700">
-                        Edit access granted
-                      </span>
-                    )}
                   </div>
                   <Link href={`/projects/${item.project.id}`} className="mt-2 inline-flex max-w-full items-center gap-2 text-lg font-bold text-primary hover:text-secondary">
                     <span className="truncate">{item.project.projectName}</span>
@@ -237,16 +219,6 @@ export default function AdminProjectApprovalsClient() {
                           {approvingId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                           Approve
                         </button>
-                        {item.editAccessStatus === 'REQUESTED' && (
-                          <button
-                            type="button"
-                            onClick={() => grantEditAccess(item)}
-                            disabled={Boolean(approvingId) || rejectingId === item.id}
-                            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-700 hover:bg-blue-100 disabled:opacity-50"
-                          >
-                            Grant Edit Access
-                          </button>
-                        )}
                         <button
                           type="button"
                           onClick={() => setRejectingId(rejectingId === item.id ? '' : item.id)}
