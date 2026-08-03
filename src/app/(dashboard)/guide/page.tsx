@@ -40,9 +40,9 @@ const guideItems = [
     answer: (
       <div className="space-y-6">
         <p>
-          You can navigate the 500+ Universal Design solutions by using the category filters on the main solutions page. 
-          The solutions are organized into 9 chapters: Entryways, Horizontal Circulation, Vertical Circulation, Restrooms, 
-          Bathing, Sleeping, Kitchens, Workstations, and Shared & Support Spaces.
+          You can navigate the 500+ Universal Design solutions by using the category filters on the main solutions page.
+          The solutions are organized into 9 chapters: Design Process, Space Clearances, Circulation, Environmental Quality,
+          Site, Rooms and Spaces, Furnishings and Equipment, Services, and Policies.
         </p>
         
         <div className="space-y-4">
@@ -338,9 +338,9 @@ export default function UserGuidePage() {
       <div className="bg-white border border-slate-200 rounded-sm shadow-sm overflow-hidden p-6 sm:p-10 space-y-8">
         <div className="space-y-4">
           <p className="text-slate-600 leading-relaxed text-[15px]">
-            This guide explains how the isUD Wishlist and isUD Certification scoring system works. 
-            The scoring and credits may sound complicated, but the good news is that website does 
-            all the math for you and you do not need to do it alone. 
+            This guide explains how the isUD Wishlist and isUD Certification scoring system works.
+            The scoring and credits may sound complicated, but the good news is that the website does
+            all the math for you and you do not need to do it alone.
             <Link href="mailto:info@isud.edu" className="text-secondary hover:underline font-bold px-1 mx-1">
               Contact us
             </Link> 

@@ -247,7 +247,7 @@ export default function ChecklistPage({ params }: { params: Promise<Params> }) {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-80px)] items-center justify-center bg-slate-50">
+      <div className="flex h-[calc(100vh-96px)] items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           <p className="text-sm font-medium text-slate-500">Loading checklist data...</p>
@@ -282,7 +282,7 @@ export default function ChecklistPage({ params }: { params: Promise<Params> }) {
 
   if (errorMessage) {
     return (
-      <div className="min-h-[calc(100vh-80px)] bg-slate-50 px-6 py-10">
+      <div className="min-h-[calc(100vh-96px)] bg-slate-50 px-6 py-10">
         <div className="mx-auto max-w-3xl rounded-sm border border-slate-200 bg-white p-8 shadow-sm">
           <p className="text-xs font-bold uppercase tracking-widest text-secondary">Checklist unavailable</p>
           <h1 className="mt-3 text-2xl font-bold text-primary">We could not open this project checklist.</h1>
@@ -301,7 +301,7 @@ export default function ChecklistPage({ params }: { params: Promise<Params> }) {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)]">
+    <div className="flex flex-col h-[calc(100vh-96px)]">
       {/* Top Header Bar */}
       <div className="min-h-20 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-4 px-8 py-3 shrink-0">
         <div className="flex min-w-0 items-center gap-3 text-sm text-slate-500 font-medium">

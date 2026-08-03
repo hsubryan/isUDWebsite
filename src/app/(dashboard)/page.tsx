@@ -3,7 +3,7 @@ import AdminPendingApprovalsBanner from "@/components/AdminPendingApprovalsBanne
 
 export default function Home() {
   return (
-    <div className="min-h-[calc(100vh-80px-200px)] flex flex-col items-center justify-start bg-slate-50">
+    <div className="min-h-[calc(100vh-96px-200px)] flex flex-col items-center justify-start bg-slate-50">
       <AdminPendingApprovalsBanner />
       <ProjectTable />
     </div>

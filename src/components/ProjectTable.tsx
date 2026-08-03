@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Search, Plus, Info, ChevronLeft, ChevronRight, AlertTriangle, Check, X, Loader2, BookOpen } from 'lucide-react';
 import { useCallback, useMemo, useState, useEffect } from 'react';
@@ -59,6 +60,7 @@ const primaryLinkClass = 'inline-flex items-center justify-center gap-2 rounded-
 const accentLinkClass = 'inline-flex items-center justify-center gap-2 rounded-sm bg-primary px-5 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition-all duration-200 hover:bg-[#002855] focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 active:scale-95';
 
 export default function ProjectTable() {
+  const router = useRouter();
   const { data: session } = useSession();
   const cachedProjects = getCached<any[]>(PROJECTS_CACHE_KEY);
   const [projects, setProjects] = useState<any[]>(cachedProjects || []);
@@ -247,11 +249,6 @@ export default function ProjectTable() {
             <Plus size={18} aria-hidden="true" />
             {newProjectLabel}
           </Link>
-          
-          <Link href="/solutions" className={accentLinkClass}>
-            <BookOpen size={18} aria-hidden="true" />
-            Browse Solutions
-          </Link>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-4">
           <label className="relative">
@@ -396,7 +393,13 @@ export default function ProjectTable() {
                   ) : (
                     <div
                       key={project.id}
-                      className={`grid ${tableColumnClass} min-h-[72px] items-center hover:bg-slate-50/50 transition-colors group`}
+                      role="link"
+                      tabIndex={0}
+                      onClick={() => router.push(`/projects/${project.id}`)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') router.push(`/projects/${project.id}`);
+                      }}
+                      className={`grid ${tableColumnClass} min-h-[72px] items-center hover:bg-slate-50/50 transition-colors group cursor-pointer`}
                     >
                         <div className="px-6 py-3 text-sm font-bold text-left">
                           <Link href={`/projects/${project.id}`} className="text-slate-800 hover:text-secondary transition-colors underline-offset-2 hover:underline">

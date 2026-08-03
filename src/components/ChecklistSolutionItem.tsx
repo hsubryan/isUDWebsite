@@ -12,6 +12,8 @@ interface SolutionProps {
   allGoals: any[];
   onStatusChange: (status: ResponseStatus) => void;
   readOnly?: boolean;
+  figuresExpanded?: boolean;
+  onToggleFigures?: () => void;
 }
 
 function isDataUri(src: string) {
@@ -25,9 +27,13 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
   allGoals,
   onStatusChange,
   readOnly = false,
+  figuresExpanded: figuresExpandedProp,
+  onToggleFigures,
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const [figuresExpanded, setFiguresExpanded] = useState(false);
+  const [figuresExpandedState, setFiguresExpandedState] = useState(false);
+  const figuresExpanded = figuresExpandedProp ?? figuresExpandedState;
+  const toggleFigures = onToggleFigures ?? (() => setFiguresExpandedState((value) => !value));
   const figures = Array.isArray(solution.figures)
     ? [
         ...new Map(
@@ -68,7 +74,7 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
           {figures.length > 0 && (
             <button
               type="button"
-              onClick={() => setFiguresExpanded((value) => !value)}
+              onClick={toggleFigures}
               className={`inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors ${
                 figuresExpanded
                   ? 'border-primary bg-primary text-white'

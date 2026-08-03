@@ -352,6 +352,7 @@ export default function ProfileUpdateForm() {
                         onChange={handleInputChange}
                         className="w-full border border-slate-300 rounded-md px-4 py-3 text-sm focus:ring-2 focus:ring-secondary outline-none transition-all bg-white"
                     />
+                    <p className="text-xs text-slate-400">At least 8 characters. Letters, numbers, and symbols are all allowed.</p>
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-600 block">
