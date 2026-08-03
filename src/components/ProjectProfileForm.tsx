@@ -137,12 +137,14 @@ type ProjectProfileFormProps = {
   mode?: 'create' | 'edit';
   projectId?: string;
   initialData?: Partial<ProjectProfileFormData>;
+  onCreateDraft?: (data: ProjectProfileFormData) => void;
 };
 
 export default function ProjectProfileForm({
   mode = 'create',
   projectId,
   initialData,
+  onCreateDraft,
 }: ProjectProfileFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -227,6 +229,12 @@ export default function ProjectProfileForm({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (mode !== 'edit' && onCreateDraft) {
+      onCreateDraft(formData);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -513,7 +521,7 @@ export default function ProjectProfileForm({
           className="bg-[#002a54] hover:bg-[#001d3d] px-10 disabled:opacity-50"
           disabled={isLoading}
         >
-          {isLoading ? 'Saving...' : mode === 'edit' ? 'Save Changes' : 'Save'}
+          {isLoading ? 'Saving...' : mode === 'edit' ? 'Save Changes' : onCreateDraft ? 'Continue' : 'Save'}
         </Button>
       </div>
 
