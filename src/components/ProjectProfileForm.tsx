@@ -276,6 +276,7 @@ export default function ProjectProfileForm({
           <div className="space-y-4">
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-600">Primary Contact Name (first and last) <span className="text-red-500">*</span></label>
+              <p className="text-xs text-slate-400">The point of contact the isUD team should reach out to about this project</p>
               <input type="text" name="contactName" value={formData.contactName} onChange={handleInputChange} placeholder="Primary Contact Person" className="w-full border border-slate-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-secondary outline-none" required />
             </div>
             <div className="space-y-1">
@@ -298,6 +299,7 @@ export default function ProjectProfileForm({
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-600">Owner's Name</label>
+              <p className="text-xs text-slate-400">The building or facility owner, if different from the primary contact</p>
               <input type="text" name="ownerName" value={formData.ownerName} onChange={handleInputChange} placeholder="Project Owner" className="w-full border border-slate-300 rounded px-4 py-2 text-sm focus:ring-2 focus:ring-secondary outline-none" />
             </div>
           </div>
@@ -385,7 +387,7 @@ export default function ProjectProfileForm({
              <h3 className="text-xl font-bold text-slate-800">Potential Services Needed</h3>
           </div>
           <p className="text-[13px] text-slate-600 leading-tight">
-            (Select all of the <span className="text-[#002a54] font-bold">isUD services</span> you may be interested in for this project)
+            Beyond certification, the isUD team offers additional <span className="text-[#002a54] font-bold">isUD services</span> such as design reviews, facility assessments, and training. Select any you'd like our team to follow up with you about &mdash; this won't affect your certification progress.
           </p>
 
           <div className="space-y-6">
@@ -406,7 +408,7 @@ export default function ProjectProfileForm({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-bold text-slate-800">Are you interested in any other isUD services?</label>
-                <label className="flex items-center gap-2 cursor-pointer group text-sm text-slate-600 font-medium">
+                <label className="flex items-center gap-2 shrink-0 whitespace-nowrap cursor-pointer group text-sm text-slate-600 font-medium">
                   {(() => {
                     const allChecked = serviceOptions.every((option) => formData.services.includes(option));
                     return (

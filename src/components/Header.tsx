@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { useState } from 'react';
-import { FolderKanban, BookOpen, UserCircle, Home, LogOut, User, ShieldCheck, Users, ClipboardCheck } from 'lucide-react';
+import { FolderKanban, BookOpen, Library, UserCircle, Home, LogOut, User, ShieldCheck, Users, ClipboardCheck } from 'lucide-react';
 import { clearClientCache } from '@/lib/clientCache';
 
 export default function Header() {
@@ -17,6 +17,7 @@ export default function Header() {
 
   const navItems = [
     { label: 'My Projects', href: '/', icon: FolderKanban },
+    { label: 'Browse Solutions', href: '/solutions', icon: Library },
     { label: 'User Guide', href: '/guide', icon: BookOpen },
     { label: 'Account', href: '/account/profile', icon: UserCircle, isAccount: true },
     { label: 'Home', href: '/', icon: Home },
@@ -26,7 +27,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-3 py-3 sm:h-20 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-0">
+        <div className="flex flex-col gap-3 py-3 sm:h-24 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-0">
           <div className="flex items-center justify-center sm:justify-start">
             <Link href="/">
               <Image
@@ -34,13 +35,13 @@ export default function Header() {
                 alt="isUD - Innovative solutions for Universal Design"
                 width={283}
                 height={118}
-                className="h-16 w-auto"
+                className="h-20 w-auto"
                 priority
               />
             </Link>
           </div>
 
-          <nav className={`grid w-full items-start gap-1 sm:w-auto sm:flex sm:items-center sm:gap-0 sm:space-x-8 ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}>
+          <nav className={`grid w-full items-start gap-1 sm:w-auto sm:flex sm:items-center sm:gap-0 sm:space-x-8 ${isAdmin ? 'grid-cols-6' : 'grid-cols-5'}`}>
             {navItems.map((item) => (
               item.isAdminPanel ? (
                 <div
@@ -60,8 +61,8 @@ export default function Header() {
                       if (event.key === 'Escape') closeAdminMenu();
                     }}
                   >
-                    <item.icon size={22} className="transition-transform duration-200" aria-hidden="true" />
-                    <span className="text-center text-[10px] font-semibold uppercase leading-tight tracking-tight sm:text-[11px]">
+                    <item.icon size={26} className="transition-transform duration-200" aria-hidden="true" />
+                    <span className="text-center text-[11px] font-semibold uppercase leading-tight tracking-tight sm:text-xs">
                       {item.label}
                     </span>
                   </button>
@@ -79,7 +80,7 @@ export default function Header() {
                       className="flex items-center space-x-3 px-4 py-3 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-primary"
                     >
                       <ShieldCheck size={16} aria-hidden="true" />
-                      <span className="font-medium">Modify Checklist</span>
+                      <span className="font-medium">Modify Solutions</span>
                     </Link>
                     <Link
                       href="/admin/users"
@@ -111,8 +112,8 @@ export default function Header() {
                         if (event.key === 'Escape') closeAccountMenu();
                       }}
                     >
-                      <item.icon size={22} className="transition-transform duration-200" aria-hidden="true" />
-                      <span className="text-center text-[10px] font-semibold uppercase leading-tight tracking-tight sm:text-[11px]">
+                      <item.icon size={26} className="transition-transform duration-200" aria-hidden="true" />
+                      <span className="text-center text-[11px] font-semibold uppercase leading-tight tracking-tight sm:text-xs">
                         {item.label}
                       </span>
                     </button>
@@ -121,8 +122,8 @@ export default function Header() {
                       href="/register"
                       className="flex flex-col items-center space-y-1 text-slate-600 transition-colors duration-200 hover:text-primary"
                     >
-                      <item.icon size={22} className="transition-transform duration-200" aria-hidden="true" />
-                      <span className="text-center text-[10px] font-semibold uppercase leading-tight tracking-tight sm:text-[11px]">
+                      <item.icon size={26} className="transition-transform duration-200" aria-hidden="true" />
+                      <span className="text-center text-[11px] font-semibold uppercase leading-tight tracking-tight sm:text-xs">
                         {item.label}
                       </span>
                     </Link>
@@ -175,8 +176,8 @@ export default function Header() {
                   href={item.href}
                   className="group flex flex-col items-center space-y-1 py-1 text-slate-600 transition-colors duration-200 hover:text-primary sm:py-0"
                 >
-                  <item.icon size={22} className="transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
-                  <span className="text-center text-[10px] font-semibold uppercase leading-tight tracking-tight sm:text-[11px]">
+                  <item.icon size={26} className="transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
+                  <span className="text-center text-[11px] font-semibold uppercase leading-tight tracking-tight sm:text-xs">
                     {item.label}
                   </span>
                 </Link>

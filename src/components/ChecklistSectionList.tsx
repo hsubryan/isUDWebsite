@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
+import { Images } from 'lucide-react';
 import { ChecklistSolutionItem } from './ChecklistSolutionItem';
 import { ResponseStatus } from '@prisma/client';
 
@@ -25,6 +26,35 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
   onSectionToggleChange,
   readOnly = false,
 }) => {
+  const [expandedFigureIds, setExpandedFigureIds] = useState<Set<string>>(new Set());
+
+  const solutionIdsWithFigures = useMemo(() => {
+    const ids = new Set<string>();
+    chapter.sections.forEach((section: any) => {
+      section.solutions.forEach((sol: any) => {
+        if (Array.isArray(sol.figures) && sol.figures.some((figure: any) => figure.url)) {
+          ids.add(sol.id);
+        }
+      });
+    });
+    return ids;
+  }, [chapter]);
+
+  const allFiguresExpanded = solutionIdsWithFigures.size > 0
+    && [...solutionIdsWithFigures].every((id) => expandedFigureIds.has(id));
+
+  const toggleAllFigures = () => {
+    setExpandedFigureIds(allFiguresExpanded ? new Set() : new Set(solutionIdsWithFigures));
+  };
+
+  const toggleFigure = (solutionId: string) => {
+    setExpandedFigureIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(solutionId)) next.delete(solutionId);
+      else next.add(solutionId);
+      return next;
+    });
+  };
 
   return (
     <div className="p-8">
@@ -34,6 +64,16 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
           <h1 className="text-3xl font-medium text-slate-800">{chapter.title}</h1>
         </div>
 
+        {solutionIdsWithFigures.size > 0 && (
+          <button
+            type="button"
+            onClick={toggleAllFigures}
+            className="flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-600 transition-colors hover:border-secondary hover:text-secondary"
+          >
+            <Images className="h-4 w-4" aria-hidden="true" />
+            {allFiguresExpanded ? 'Collapse All Images' : 'Expand All Images'}
+          </button>
+        )}
       </div>
       
       {/* Required Solutions Summary */}
@@ -68,6 +108,8 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
                       allGoals={allGoals}
                       onStatusChange={(status) => onStatusChange(sol.id, status)}
                       readOnly={readOnly}
+                      figuresExpanded={expandedFigureIds.has(sol.id)}
+                      onToggleFigures={() => toggleFigure(sol.id)}
                     />
                   </div>
                 </div>
@@ -106,7 +148,7 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
 
           return (
             <div key={section.id} className={`relative group/sec transition-opacity ${isSectionEnabled ? '' : 'opacity-70'}`}>
-              <div className="flex items-center justify-between mb-4 bg-white sticky top-0 z-10 py-2">
+              <div className="flex items-center justify-between mb-4 bg-white py-2">
                 <div className="flex items-center gap-4">
                   <span className="text-xl font-bold text-primary">{displaySectionNumber}</span>
                   <h3 className="text-xl font-bold text-slate-800 tracking-tight group-hover/sec:text-primary transition-colors">
@@ -182,6 +224,8 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
                       allGoals={allGoals}
                       onStatusChange={(status) => onStatusChange(sol.id, status)}
                       readOnly={readOnly || !isSectionEnabled}
+                      figuresExpanded={expandedFigureIds.has(sol.id)}
+                      onToggleFigures={() => toggleFigure(sol.id)}
                     />
                   ))}
                 </div>

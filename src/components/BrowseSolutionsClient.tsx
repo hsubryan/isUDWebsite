@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
-import { ArrowRight, ChevronRight, Image as ImageIcon, Minus, Plus, Printer, Search } from 'lucide-react';
+import { ArrowRight, ChevronRight, Image as ImageIcon, Images, Minus, Plus, Printer, Search } from 'lucide-react';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 
 type Solution = {
@@ -89,6 +89,21 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
     ? visibleSections.filter((section) => section.id === activeSectionId)
     : visibleSections;
 
+  const visibleSolutionIds = useMemo(
+    () => selectedSections.flatMap((section) => section.solutions.map((solution) => solution.id)),
+    [selectedSections]
+  );
+  const allSolutionsExpanded = visibleSolutionIds.length > 0
+    && visibleSolutionIds.every((id) => expandedSolutionIds[id]);
+
+  const toggleAllExpanded = () => {
+    setExpandedSolutionIds((prev) => {
+      const next = { ...prev };
+      visibleSolutionIds.forEach((id) => { next[id] = !allSolutionsExpanded; });
+      return next;
+    });
+  };
+
   const breadcrumbItems = [
     { label: 'My Projects', href: '/' },
     { label: 'Browse Solutions' },
@@ -147,7 +162,7 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
         <div className="flex flex-col gap-4 px-6 py-5 bg-white border-b border-slate-200 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-              Explore the Universal Design solution library
+              Explore the Innovative Solutions for Universal Design
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -255,6 +270,18 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
                 </aside>
 
                 <div className="xl:col-span-8 p-6 space-y-8">
+                  {visibleSolutionIds.length > 0 && (
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={toggleAllExpanded}
+                        className="flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-600 transition-colors hover:border-secondary hover:text-secondary"
+                      >
+                        <Images className="h-4 w-4" aria-hidden="true" />
+                        {allSolutionsExpanded ? 'Collapse All' : 'Expand All'}
+                      </button>
+                    </div>
+                  )}
                   {selectedSections.length === 0 ? (
                     <div className="rounded-sm border border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
                       No solutions match your search.

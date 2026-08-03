@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { sendTeamInviteEmail } from '@/lib/teamInviteEmail';
 
 const validPermissions = ['ADMIN', 'EDITOR', 'VIEWER'];
 const validRoles = ['PROJECT_MANAGER', 'ARCHITECT', 'CONSULTANT', 'DEVELOPMENT', 'OWNERSHIP', 'HR', 'ADVOCATE'];
@@ -149,6 +150,20 @@ export async function POST(
         status: 'PENDING',
       },
     });
+
+    // If the invited address has no isUD account yet, let them know by email
+    // so they aren't left waiting on a notification inside a site they can't sign into.
+    if (!user) {
+      try {
+        await sendTeamInviteEmail({
+          email: email.toLowerCase(),
+          inviterName: session.user.name || 'A project manager',
+          projectName: access.project.projectName,
+        });
+      } catch (emailError) {
+        console.error('[TEAM_INVITE_EMAIL_ERROR]', emailError);
+      }
+    }
 
     return NextResponse.json(invite);
   } catch (error: any) {

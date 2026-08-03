@@ -105,6 +105,7 @@ export default function ResetPasswordForm() {
           />
           <Lock className="absolute right-3 top-3.5 text-slate-400" size={18} />
         </div>
+        <p className="text-xs text-slate-400">At least 8 characters. Letters, numbers, and symbols are all allowed.</p>
       </div>
 
       <div className="space-y-2">
