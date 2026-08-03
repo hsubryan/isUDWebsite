@@ -43,11 +43,6 @@ export async function POST(
         teamMembers: {
           where: { userId },
         },
-        submissions: {
-          where: { status: 'PENDING' },
-          take: 1,
-          select: { editAccessStatus: true },
-        },
       },
     });
 
@@ -76,7 +71,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized: Read-only access or missing permissions' }, { status: 403 });
     }
 
-    if (!isProjectEditable(project.status, project.submissions[0]?.editAccessStatus)) {
+    if (!isProjectEditable(project.status)) {
       return NextResponse.json({ error: 'Project is not editable in its current status' }, { status: 409 });
     }
 

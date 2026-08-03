@@ -11,8 +11,6 @@ function normalizeSubmission(submission: any) {
     approvedAt: submission.approvedAt,
     rejectedAt: submission.rejectedAt,
     reviewNote: submission.reviewNote,
-    editAccessStatus: submission.editAccessStatus,
-    editAccessRequestedAt: submission.editAccessRequestedAt,
     project: {
       id: submission.project.id,
       projectNumber: submission.project.projectNumber,
@@ -79,7 +77,7 @@ export async function POST(req: Request) {
     if (!submissionId || typeof submissionId !== 'string') {
       return NextResponse.json({ error: 'Submission ID is required' }, { status: 400 });
     }
-    if (!['approve', 'reject', 'grantEdit'].includes(action)) {
+    if (!['approve', 'reject'].includes(action)) {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
@@ -91,7 +89,6 @@ export async function POST(req: Request) {
       select: {
         id: true,
         projectId: true,
-        editAccessStatus: true,
       },
     });
 
@@ -113,7 +110,7 @@ export async function POST(req: Request) {
           data: { status: 'COMPLETED' },
         }),
       ]);
-    } else if (action === 'reject') {
+    } else {
       await prisma.$transaction([
         prisma.projectSubmission.update({
           where: { id: submission.id },
@@ -128,17 +125,6 @@ export async function POST(req: Request) {
           data: { status: 'ONGOING' },
         }),
       ]);
-    } else {
-      if (submission.editAccessStatus !== 'REQUESTED') {
-        return NextResponse.json({ error: 'Edit access was not requested for this submission' }, { status: 409 });
-      }
-      await prisma.projectSubmission.update({
-        where: { id: submission.id },
-        data: {
-          editAccessStatus: 'GRANTED',
-          editAccessGrantedAt: new Date(),
-        },
-      });
     }
 
     return NextResponse.json({ success: true });
