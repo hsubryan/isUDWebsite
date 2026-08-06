@@ -12,6 +12,7 @@ type Solution = {
   points: number;
   isMandatory: boolean;
   instruction: string | null;
+  subSection: { id: string; number: string; title: string } | null;
   goals: { id: string; text: string }[];
   phases: { id: string; name: string }[];
   figures: {
@@ -299,7 +300,9 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
                         </div>
 
                         <div className="divide-y divide-slate-100 rounded-sm border border-slate-200">
-                          {section.solutions.map((solution) => {
+                          {(() => {
+                            let lastSubSectionId: string | null = null;
+                            return section.solutions.map((solution) => {
                             const expanded = !!expandedSolutionIds[solution.id];
                             const figures = [
                               ...new Map(
@@ -308,8 +311,18 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
                                   .map((figure) => [`${figure.number || ''}|${figure.url}`, figure])
                               ).values(),
                             ];
+                            const subSectionId = solution.subSection?.id || null;
+                            const showSubSectionHeading = Boolean(subSectionId && subSectionId !== lastSubSectionId);
+                            lastSubSectionId = subSectionId;
                             return (
                               <div key={solution.id} className="bg-white">
+                                {showSubSectionHeading && solution.subSection && (
+                                  <div className="bg-slate-50 px-4 py-2 border-b border-slate-100">
+                                    <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                                      {activeChapter.number}.{section.number}.{solution.subSection.number} {solution.subSection.title}
+                                    </span>
+                                  </div>
+                                )}
                                 <button
                                   type="button"
                                   onClick={() => setExpandedSolutionIds((prev) => ({ ...prev, [solution.id]: !expanded }))}
@@ -395,7 +408,8 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
                                 )}
                               </div>
                             );
-                          })}
+                            });
+                          })()}
                         </div>
                       </section>
                     ))
