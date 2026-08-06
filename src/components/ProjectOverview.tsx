@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Edit, Send, ClipboardCheck, Loader2 } from 'lucide-react';
+import { Edit, Send, ClipboardCheck, Loader2, HelpCircle } from 'lucide-react';
 import Button from './ui/Button';
 import { PreliminaryProgress } from './PreliminaryProgress';
 
@@ -543,7 +543,18 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
 
           {/* Potential Services Needed */}
           <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-primary mb-4">Potential Services Needed</h2>
+            <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-1.5">
+              Potential Services Needed
+              <a
+                href="https://thisisud.com/services/"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Learn more about isUD services"
+                aria-label="Learn more about isUD services (opens in a new tab)"
+              >
+                <HelpCircle size={15} className="text-slate-400 hover:text-secondary" />
+              </a>
+            </h2>
             <ul className="space-y-1 text-sm text-slate-700">
               {project.services.length > 0 ? (
                 project.services.map((s) => (
@@ -558,7 +569,18 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
           <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm">
             {editingCard === 'certification' ? (
               <div className="space-y-3">
-                <h2 className="text-lg font-bold text-primary mb-2">Certification</h2>
+                <h2 className="text-lg font-bold text-primary mb-2 flex items-center gap-1.5">
+                  Certification
+                  <a
+                    href="https://thisisud.com/services/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Learn more about Guided Certification vs. Certification Only"
+                    aria-label="Learn more about Guided Certification vs. Certification Only (opens in a new tab)"
+                  >
+                    <HelpCircle size={15} className="text-slate-400 hover:text-secondary" />
+                  </a>
+                </h2>
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-700">
                     <input
@@ -588,7 +610,18 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
               </div>
             ) : (
               <div>
-                <h2 className="text-lg font-bold text-primary mb-4">Certification</h2>
+                <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-1.5">
+                  Certification
+                  <a
+                    href="https://thisisud.com/services/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Learn more about Guided Certification vs. Certification Only"
+                    aria-label="Learn more about Guided Certification vs. Certification Only (opens in a new tab)"
+                  >
+                    <HelpCircle size={15} className="text-slate-400 hover:text-secondary" />
+                  </a>
+                </h2>
                 <p className="text-sm"><span className="font-bold text-slate-700">Type:</span> {project.certification}</p>
               </div>
             )}
