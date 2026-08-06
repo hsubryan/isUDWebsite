@@ -215,19 +215,36 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
                   )}
                 </div>
                 <div className="divide-y divide-slate-100">
-                  {section.solutions.map((sol: any) => (
-                    <ChecklistSolutionItem
-                      key={sol.id}
-                      solution={sol}
-                      status={responses[sol.id] || 'NOT_IMPLEMENTED'}
-                      allPhases={allPhases}
-                      allGoals={allGoals}
-                      onStatusChange={(status) => onStatusChange(sol.id, status)}
-                      readOnly={readOnly || !isSectionEnabled}
-                      figuresExpanded={expandedFigureIds.has(sol.id)}
-                      onToggleFigures={() => toggleFigure(sol.id)}
-                    />
-                  ))}
+                  {(() => {
+                    let lastSubSectionId: string | null = null;
+                    return section.solutions.map((sol: any) => {
+                      const subSectionId = sol.subSectionId || null;
+                      const showSubSectionHeading = Boolean(subSectionId && subSectionId !== lastSubSectionId && sol.subSection);
+                      lastSubSectionId = subSectionId;
+
+                      return (
+                        <React.Fragment key={sol.id}>
+                          {showSubSectionHeading && (
+                            <div className="bg-slate-50 px-6 py-2">
+                              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                                {displaySectionNumber}.{sol.subSection.number} {sol.subSection.title}
+                              </span>
+                            </div>
+                          )}
+                          <ChecklistSolutionItem
+                            solution={sol}
+                            status={responses[sol.id] || 'NOT_IMPLEMENTED'}
+                            allPhases={allPhases}
+                            allGoals={allGoals}
+                            onStatusChange={(status) => onStatusChange(sol.id, status)}
+                            readOnly={readOnly || !isSectionEnabled}
+                            figuresExpanded={expandedFigureIds.has(sol.id)}
+                            onToggleFigures={() => toggleFigure(sol.id)}
+                          />
+                        </React.Fragment>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             </div>

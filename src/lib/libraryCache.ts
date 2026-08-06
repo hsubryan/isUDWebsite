@@ -20,6 +20,9 @@ export const getCachedLibrary = unstable_cache(
               where: { archivedAt: null },
               orderBy: { standardNumber: 'asc' },
               include: {
+                subSection: {
+                  select: { id: true, number: true, title: true },
+                },
                 goals: {
                   where: { archivedAt: null },
                 },
