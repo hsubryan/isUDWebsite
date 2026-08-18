@@ -392,18 +392,7 @@ export default function ProjectProfileForm({
         <div className="space-y-6">
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-full border-2 border-slate-800 flex items-center justify-center font-bold text-lg">3</div>
-             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-1.5">
-               Potential Services Needed
-               <a
-                 href="https://thisisud.com/services/"
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 title="Learn more about isUD services"
-                 aria-label="Learn more about isUD services (opens in a new tab)"
-               >
-                 <HelpCircle size={16} className="text-slate-400 hover:text-secondary" />
-               </a>
-             </h3>
+             <h3 className="text-xl font-bold text-slate-800">Potential Services Needed</h3>
           </div>
           <p className="text-[13px] text-slate-600 leading-tight">
             Beyond certification, the isUD team offers additional <span className="text-[#002a54] font-bold">isUD services</span> such as design reviews, facility assessments, and training. Select any you'd like our team to follow up with you about &mdash; this won't affect your certification progress.
@@ -437,7 +426,18 @@ export default function ProjectProfileForm({
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-bold text-slate-800">Are you interested in any other isUD services?</label>
+                <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                  Are you interested in any other isUD services?
+                  <a
+                    href="https://thisisud.com/services/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Learn more about isUD services"
+                    aria-label="Learn more about isUD services (opens in a new tab)"
+                  >
+                    <HelpCircle size={14} className="text-slate-400 hover:text-secondary" />
+                  </a>
+                </label>
                 <label className="flex items-center gap-2 shrink-0 whitespace-nowrap cursor-pointer group text-sm text-slate-600 font-medium">
                   {(() => {
                     const allChecked = serviceOptions.every((option) => formData.services.includes(option));
