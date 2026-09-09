@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/clean-next-cache.cjs",
     "dev": "next dev -p 3001",
     "prebuild": "node scripts/guard-dev-server.cjs && node scripts/clean-next-cache.cjs",
     "build": "prisma migrate deploy && prisma generate && next build",
@@ -43,6 +42,7 @@
     "eslint": "^9.18.0",
     "eslint-config-next": "^15.5.19",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vercel": "^59.1.4"
   }
 }
