@@ -398,8 +398,12 @@ async function swapField<T extends { id: string }>(
   const current = siblings[index] as T & Record<typeof field, string | number>;
   const target = siblings[targetIndex] as T & Record<typeof field, string | number>;
 
-  // Single atomic CASE UPDATE avoids intermediate unique-constraint violations
-  // that a 3-step temp-value swap would cause on non-deferrable unique indexes.
+  // The (chapterId, number)/(sectionId, number)/(standardNumber) unique indexes
+  // are not deferrable, and Postgres checks them per row as a multi-row UPDATE
+  // executes - so a single "CASE id WHEN ... END" statement can still hit a
+  // transient collision when swapping two values that already exist. Route the
+  // swap through a temp value that can't collide with a real sibling instead,
+  // inside one transaction so it's still all-or-nothing.
   const tableMap = {
     chapter: '"Chapter"',
     section: '"Section"',
@@ -411,13 +415,15 @@ async function swapField<T extends { id: string }>(
     standardNumber: '"standardNumber"',
   } as const;
 
-  await prisma.$executeRawUnsafe(
-    `UPDATE ${tableMap[resource]} SET ${columnMap[field]} = CASE id WHEN $1 THEN $2 WHEN $3 THEN $4 END WHERE id IN ($1, $3)`,
-    current.id,
-    target[field],
-    target.id,
-    current[field]
-  );
+  const table = tableMap[resource];
+  const column = columnMap[field];
+  const tempValue = `__reorder_temp_${current.id}`;
+
+  await prisma.$transaction([
+    prisma.$executeRawUnsafe(`UPDATE ${table} SET ${column} = $1 WHERE id = $2`, tempValue, current.id),
+    prisma.$executeRawUnsafe(`UPDATE ${table} SET ${column} = $1 WHERE id = $2`, current[field], target.id),
+    prisma.$executeRawUnsafe(`UPDATE ${table} SET ${column} = $1 WHERE id = $2`, target[field], current.id),
+  ]);
 
   return { moved: true };
 }
