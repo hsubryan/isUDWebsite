@@ -13,10 +13,10 @@ npm install
 Create a local env file:
 
 ```powershell
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Update `.env.local` with your Neon `DATABASE_URL`, then apply database migrations and seed the reference data:
+Update `.env` with your Neon `DATABASE_URL`/`DIRECT_URL`, then apply database migrations and seed the reference data:
 
 ```powershell
 npx prisma migrate deploy
@@ -50,9 +50,11 @@ Open [http://localhost:3001](http://localhost:3001).
 
 ## Notes
 
-Keep secrets in `.env.local` or `.env`; both are ignored by git.
+Keep secrets in `.env`; it's ignored by git.
 For Vercel production, set the variables from `.env.production.example` in the Vercel dashboard:
 
-- `DATABASE_URL`: Neon Postgres connection string, usually the pooled `*-pooler.neon.tech` URL with `sslmode=require`.
-- `NEXTAUTH_URL`: `https://isud-website.vercel.app` unless you add a custom production domain.
+- `DATABASE_URL`: Neon Postgres pooled connection string (`*-pooler.neon.tech`, with `sslmode=require&pgbouncer=true&connection_limit=1`).
+- `DIRECT_URL`: Neon Postgres direct (non-pooled) connection string, used for running migrations.
+- `NEXTAUTH_URL`: the deployment's actual domain (custom domain if one is attached, otherwise the `*.vercel.app` URL Vercel assigns the project).
 - `NEXTAUTH_SECRET`: a stable random secret. Generate one with `openssl rand -base64 32`.
+- `BREVO_API_KEY` / `BREVO_SENDER_EMAIL`: used by `src/lib/mailer.ts` to send verification, invite, and password-reset email via Brevo.
