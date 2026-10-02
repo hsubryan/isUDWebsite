@@ -49,7 +49,7 @@ const facilityCategoryTemplates: FacilityCategory[] = [
   },
   {
     title: 'Office',
-    items: ['Administrative/Professional Office', 'Government Office'],
+    items: ['Administrative/Workplace', 'Government Office'],
   },
   {
     title: 'Assembly',
@@ -502,7 +502,7 @@ export default function ProjectProfileForm({
            </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-x-8 gap-y-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-x-8 gap-y-10">
           {facilityCategories.map((category) => (
             <div key={category.title} className="space-y-3">
                <h4 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-1">{category.title}</h4>
@@ -518,7 +518,7 @@ export default function ProjectProfileForm({
                       <span className={`mt-0.5 w-4 h-4 shrink-0 rounded border flex items-center justify-center transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-secondary peer-focus-visible:ring-offset-2 ${formData.facilityUses.includes(item) ? 'bg-secondary border-secondary' : 'bg-slate-100 border-slate-300 group-hover:border-slate-400'}`}>
                         {formData.facilityUses.includes(item) && <Check size={12} className="text-white" aria-hidden="true" />}
                       </span>
-                      <span className="text-xs text-slate-700 leading-tight">{item}</span>
+                      <span className="text-xs text-slate-700 leading-tight break-words">{item}</span>
                     </label>
                   ))}
                </div>

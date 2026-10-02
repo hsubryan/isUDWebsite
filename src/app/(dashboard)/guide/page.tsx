@@ -120,7 +120,7 @@ const guideItems = [
           "Bonus credits can be earned for implementing a higher number of solutions within an applicable section.",
           "Some solutions are required for isUD Certification and some sections are not applicable to every project.",
           "isUD does not allow for partial credit. A solution is either implemented or it is not.",
-          "Implementation of 500+ solutions provides the flexibility to create customized universal design goals for each unique project."
+          "Implementation of 500+ solutions provides the flexibility to create customized Universal Design goals for each unique project."
         ].map((item, i) => (
           <li key={i} className="flex gap-3">
             <CheckCircle2 size={18} className="text-secondary shrink-0 mt-1" />
@@ -338,13 +338,13 @@ export default function UserGuidePage() {
       <div className="bg-white border border-slate-200 rounded-sm shadow-sm overflow-hidden p-6 sm:p-10 space-y-8">
         <div className="space-y-4">
           <p className="text-slate-600 leading-relaxed text-[15px]">
-            This guide explains how the isUD Wishlist and isUD Certification scoring system works.
+            This guide explains how the isUD Checklist and isUD Certification scoring system works.
             The scoring and credits may sound complicated, but the good news is that the website does
             all the math for you and you do not need to do it alone.
             <Link href="mailto:info@isud.edu" className="text-secondary hover:underline font-bold px-1 mx-1">
               Contact us
-            </Link> 
-            to work with a Universal Design expert who can guide you through a project, 
+            </Link>
+            to work with a Universal Design expert who can guide you through a project,
             and ensure your project contains all the necessary elements to earn isUD Certification.
           </p>
         </div>
