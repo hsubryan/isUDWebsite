@@ -5,6 +5,15 @@ export type SolutionData = {
   points: number;
   isMandatory: boolean;
   standardNumber: string;
+  subSectionId?: string | null;
+};
+
+export type SubSectionData = {
+  id: string;
+  minPoints1: number;
+  minPoints2: number;
+  minPoints3: number;
+  totalCredits: number;
 };
 
 export type SectionData = {
@@ -15,6 +24,7 @@ export type SectionData = {
   minPoints2: number;
   minPoints3: number;
   solutions: SolutionData[];
+  subSections?: SubSectionData[];
 };
 
 export type ChapterData = {
@@ -123,6 +133,40 @@ function getRequiredDisplayNumber(standardNumber: string, fallbackSectionNumber:
   return parts.slice(0, -1).join('.');
 }
 
+type TierResult = { credits: number; thresholdReached: number };
+
+/**
+ * Awards credits for a tiered "N Credits: Implement X of Y" group (a section,
+ * or a subsection when a section delegates its thresholds to subsections).
+ * Tier N (minPointsN) awards N credits - not "half vs full" - so this
+ * generalizes correctly to 1-, 2-, and 3-tier sections alike. Falls back to
+ * a flat points-per-solution sum (capped at totalCredits) when no tier is
+ * configured at all.
+ */
+function scoreTieredGroup(
+  implementedCount: number,
+  minPoints1: number,
+  minPoints2: number,
+  minPoints3: number,
+  totalCredits: number,
+  rawPointsEarned: number
+): TierResult {
+  if (minPoints3 > 0 && implementedCount >= minPoints3) {
+    return { credits: Math.min(3, totalCredits), thresholdReached: minPoints3 };
+  }
+  if (minPoints2 > 0 && implementedCount >= minPoints2) {
+    return { credits: Math.min(2, totalCredits), thresholdReached: minPoints2 };
+  }
+  if (minPoints1 > 0 && implementedCount >= minPoints1) {
+    return { credits: Math.min(1, totalCredits), thresholdReached: minPoints1 };
+  }
+
+  const hasThresholds = minPoints1 > 0 || minPoints2 > 0 || minPoints3 > 0;
+  if (hasThresholds) return { credits: 0, thresholdReached: 0 };
+
+  return { credits: Math.min(rawPointsEarned, totalCredits), thresholdReached: 0 };
+}
+
 /**
  * Calculates scores based on isUD threshold logic
  */
@@ -137,6 +181,13 @@ export function calculateProjectScore(
   let totalBonus = 0;
   const failedSections: string[] = [];
   const missingMandatorySectionsSet = new Set<string>();
+
+  // 1 bonus credit for every 5 solutions implemented beyond a group's requirement
+  function addBonus(credits: number, implementedCount: number, thresholdReached: number) {
+    if (credits <= 0) return;
+    const surplus = implementedCount - thresholdReached;
+    if (surplus >= 5) totalBonus += Math.floor(surplus / 5);
+  }
 
   const chapterScores = chapters.map((chapter) => {
     let chapterEarned = 0;
@@ -163,37 +214,52 @@ export function calculateProjectScore(
         );
       });
 
+      // 2. Tiered logic: some sections delegate their "N of M" thresholds down
+      // to subsections instead of defining them directly (e.g. 4.1 Illumination
+      // has three subsections, each worth 1 credit on its own criteria). Score
+      // each such group independently, then sum - capped at the section total.
       let sectionCredits = 0;
-      let thresholdReached = 0; // Number of solutions needed for the earned credits
+      const subSections = section.subSections || [];
 
-      // 2. Tiered logic: Calculate base credits
-      if (section.minPoints3 > 0 && implementedCount >= section.minPoints3) {
-        sectionCredits = section.totalCredits;
-        thresholdReached = section.minPoints3;
-      } else if (section.minPoints2 > 0 && implementedCount >= section.minPoints2) {
-        sectionCredits = section.totalCredits;
-        thresholdReached = section.minPoints2;
-      } else if (section.minPoints1 > 0 && implementedCount >= section.minPoints1) {
-        sectionCredits = Math.max(1, Math.floor(section.totalCredits / 2));
-        thresholdReached = section.minPoints1;
+      if (subSections.length > 0) {
+        const solutionsBySubSection = new Map<string, SolutionData[]>();
+        const directSolutions: SolutionData[] = [];
+        for (const sol of section.solutions) {
+          if (sol.subSectionId) {
+            const list = solutionsBySubSection.get(sol.subSectionId) || [];
+            list.push(sol);
+            solutionsBySubSection.set(sol.subSectionId, list);
+          } else {
+            directSolutions.push(sol);
+          }
+        }
+
+        for (const sub of subSections) {
+          const subSolutions = solutionsBySubSection.get(sub.id) || [];
+          const subImplementedCount = subSolutions.filter((sol) => responseMap.get(sol.id) === 'IMPLEMENTED').length;
+          const subRawPoints = subSolutions.reduce((sum, sol) => sum + (responseMap.get(sol.id) === 'IMPLEMENTED' ? sol.points : 0), 0);
+          const result = scoreTieredGroup(subImplementedCount, sub.minPoints1, sub.minPoints2, sub.minPoints3, sub.totalCredits, subRawPoints);
+          sectionCredits += result.credits;
+          addBonus(result.credits, subImplementedCount, result.thresholdReached);
+        }
+
+        // Solutions attached to the section itself rather than a subsection -
+        // score them against whatever section-level threshold remains.
+        if (directSolutions.length > 0) {
+          const directImplementedCount = directSolutions.filter((sol) => responseMap.get(sol.id) === 'IMPLEMENTED').length;
+          const directRawPoints = directSolutions.reduce((sum, sol) => sum + (responseMap.get(sol.id) === 'IMPLEMENTED' ? sol.points : 0), 0);
+          const remainingCredits = Math.max(0, section.totalCredits - sectionCredits);
+          const result = scoreTieredGroup(directImplementedCount, section.minPoints1, section.minPoints2, section.minPoints3, remainingCredits, directRawPoints);
+          sectionCredits += result.credits;
+          addBonus(result.credits, directImplementedCount, result.thresholdReached);
+        }
+
+        sectionCredits = Math.min(sectionCredits, section.totalCredits);
       } else {
-        const hasThresholds = section.minPoints1 > 0 || section.minPoints2 > 0 || section.minPoints3 > 0;
-        if (!hasThresholds) {
-          const rawScore = section.solutions.reduce((sum, sol) => {
-            return sum + (responseMap.get(sol.id) === 'IMPLEMENTED' ? sol.points : 0);
-          }, 0);
-          sectionCredits = Math.min(rawScore, section.totalCredits);
-          thresholdReached = 0;
-        }
-      }
-
-      // 3. Bonus Credits Logic
-      // 1 bonus credit for every 5 solutions implemented beyond the requirement
-      if (sectionCredits > 0) {
-        const surplus = implementedCount - thresholdReached;
-        if (surplus >= 5) {
-          totalBonus += Math.floor(surplus / 5);
-        }
+        const rawPoints = section.solutions.reduce((sum, sol) => sum + (responseMap.get(sol.id) === 'IMPLEMENTED' ? sol.points : 0), 0);
+        const result = scoreTieredGroup(implementedCount, section.minPoints1, section.minPoints2, section.minPoints3, section.totalCredits, rawPoints);
+        sectionCredits = result.credits;
+        addBonus(result.credits, implementedCount, result.thresholdReached);
       }
 
       const displaySectionNumber = getDisplaySectionNumber(chapter.number, section.number);

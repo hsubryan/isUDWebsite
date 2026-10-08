@@ -177,14 +177,6 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
               </thead>
             </table>
           </div>
-          {solution.instruction && (
-            <div className="mt-4 text-sm text-slate-600 space-y-2">
-              <p className="font-semibold text-slate-700 uppercase tracking-wider text-[11px]">Instructions:</p>
-              <div className="bg-white p-4 border border-slate-200 rounded-md text-[13px] italic leading-relaxed shadow-sm">
-                {solution.instruction}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

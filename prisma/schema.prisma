@@ -227,6 +227,13 @@ model SubSection {
   title        String
   totalCredits Float
   sectionId    String
+  // Some sections delegate their "N of M" scoring thresholds down to
+  // subsections instead of defining them at the section level directly
+  // (e.g. 4.1 Illumination's 3 subsections, each worth 1 credit on their
+  // own criteria, while the section itself has 0/0/0). See src/lib/scoring.ts.
+  minPoints1   Int        @default(0)
+  minPoints2   Int        @default(0)
+  minPoints3   Int        @default(0)
   archivedAt   DateTime?
   solutions    Solution[]
   section      Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
