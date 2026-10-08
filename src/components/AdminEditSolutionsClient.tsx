@@ -607,26 +607,29 @@ export default function AdminEditSolutionsClient() {
           </section>
 
           <aside ref={editPanelRef} className="min-w-0 space-y-4 lg:col-span-2 xl:col-span-3">
-            <EditForm
-              target={editTarget}
-              chapter={activeChapter}
-              section={activeSection}
-              chapters={library.chapters}
-              goals={library.goals}
-              phases={library.phases}
-              facilityUses={library.facilityUses}
-              saving={saving}
-              onChange={(target) => setEditTarget(target)}
-              onSubmit={saveEdit}
-              onCancel={() => setEditTarget(null)}
-            />
-            <LibraryTools
-              goals={library.goals}
-              phases={library.phases}
-              facilityUses={library.facilityUses}
-              onEdit={editSimple}
-              onArchive={(resource, id, archived) => archiveAction(resource, id, archived)}
-            />
+            {editTarget ? (
+              <EditForm
+                target={editTarget}
+                chapter={activeChapter}
+                section={activeSection}
+                chapters={library.chapters}
+                goals={library.goals}
+                phases={library.phases}
+                facilityUses={library.facilityUses}
+                saving={saving}
+                onChange={(target) => setEditTarget(target)}
+                onSubmit={saveEdit}
+                onCancel={() => setEditTarget(null)}
+              />
+            ) : (
+              <LibraryTools
+                goals={library.goals}
+                phases={library.phases}
+                facilityUses={library.facilityUses}
+                onEdit={editSimple}
+                onArchive={(resource, id, archived) => archiveAction(resource, id, archived)}
+              />
+            )}
           </aside>
         </div>
       )}
@@ -806,7 +809,7 @@ function EditForm({
   onSubmit,
   onCancel,
 }: {
-  target: EditTarget | null;
+  target: EditTarget;
   chapter?: Chapter;
   section?: Section;
   chapters: Chapter[];
@@ -818,17 +821,6 @@ function EditForm({
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onCancel: () => void;
 }) {
-  if (!target) {
-    return (
-      <div className="min-h-[260px] border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm sm:min-h-[360px]">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-          <Pencil className="h-5 w-5" />
-        </div>
-        <p className="mt-4 text-sm font-bold text-slate-600">Select an item to edit</p>
-        <p className="mt-1 text-sm font-medium text-slate-400">Use the pencil icons or add buttons to open the editor here.</p>
-      </div>
-    );
-  }
 
   const item = target.item as any;
   const update = (patch: Record<string, unknown>) => onChange({ ...target, item: { ...target.item, ...patch } } as EditTarget);
@@ -935,7 +927,9 @@ function EditForm({
             </label>
           </div>
           <TextArea label="Solution text" value={item.text} onChange={(value) => update({ text: value })} minHeightClass="min-h-44" />
-          <TextArea label="Instruction" value={item.instruction} onChange={(value) => update({ instruction: value })} minHeightClass="min-h-36" />
+          {item.id && (
+            <TextArea label="Instruction" value={item.instruction} onChange={(value) => update({ instruction: value })} minHeightClass="min-h-36" />
+          )}
           <CheckboxGroup label="Applicable Goals" values={(item.goalIds || []) as string[]} options={goals.map((goal) => ({ value: goal.id, label: `${goal.abbr}: ${goal.text}` }))} onChange={(values) => update({ goalIds: values })} />
           <CheckboxGroup label="Applicable Phases" values={(item.phaseIds || []) as string[]} options={phases.map((phase) => ({ value: phase.id, label: phase.name }))} onChange={(values) => update({ phaseIds: values })} />
         </div>

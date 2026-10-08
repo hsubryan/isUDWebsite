@@ -61,7 +61,7 @@ const facilityCategoryTemplates: FacilityCategory[] = [
   },
 ];
 
-const serviceOptions = [
+export const serviceOptions = [
   'Design Review',
   'Facilities Assessment',
   'Design Guidebook Development and Integration',

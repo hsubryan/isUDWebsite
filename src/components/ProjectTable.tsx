@@ -230,7 +230,7 @@ export default function ProjectTable() {
               key={tab.value}
               type="button"
               onClick={() => setOwnershipFilter(tab.value)}
-              className={`rounded-sm px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${
+              className={`cursor-pointer rounded-sm px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${
                 ownershipFilter === tab.value
                   ? 'bg-accent text-white shadow-sm'
                   : 'bg-primary text-white hover:bg-primary/85'
@@ -399,7 +399,7 @@ export default function ProjectTable() {
                       onKeyDown={(event) => {
                         if (event.key === 'Enter') router.push(`/projects/${project.id}`);
                       }}
-                      className={`grid ${tableColumnClass} min-h-[72px] items-center hover:bg-slate-50/50 transition-colors group cursor-pointer`}
+                      className={`grid ${tableColumnClass} min-h-[72px] items-center hover:bg-slate-100 transition-colors group cursor-pointer`}
                     >
                         <div className="px-6 py-3 text-sm font-bold text-left">
                           <Link href={`/projects/${project.id}`} className="text-slate-800 hover:text-secondary transition-colors underline-offset-2 hover:underline">
