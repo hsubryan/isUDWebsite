@@ -54,7 +54,7 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="mt-1 p-0.5 rounded-full border border-slate-300 text-slate-400 hover:border-primary hover:text-primary transition-colors"
+          className="mt-1 p-0.5 rounded-full border-2 border-slate-500 text-slate-600 hover:border-primary hover:text-primary transition-colors"
           aria-label={expanded ? 'Hide solution details' : 'Show solution details'}
           aria-expanded={expanded}
         >
