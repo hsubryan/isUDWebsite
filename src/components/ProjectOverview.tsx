@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { Edit, Send, ClipboardCheck, Loader2, HelpCircle } from 'lucide-react';
 import Button from './ui/Button';
 import { PreliminaryProgress } from './PreliminaryProgress';
+import { serviceOptions } from './ProjectProfileForm';
 
 interface ChapterScore {
   number: string;
@@ -115,7 +116,7 @@ function CardEditActions({ onSave, onCancel, saving }: { onSave: () => void; onC
   );
 }
 
-type EditableCard = 'projectInfo' | 'contactInfo' | 'certification';
+type EditableCard = 'projectInfo' | 'contactInfo' | 'certification' | 'services' | 'facilityUses';
 
 export default function ProjectOverview({ id: propId }: { id?: string }) {
   const params = useParams();
@@ -127,9 +128,11 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [editingCard, setEditingCard] = useState<EditableCard | null>(null);
   const [cardFormData, setCardFormData] = useState<Record<string, string>>({});
+  const [cardListData, setCardListData] = useState<string[]>([]);
   const [savingCard, setSavingCard] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
   const [showLockedModal, setShowLockedModal] = useState(false);
+  const [allFacilityUseNames, setAllFacilityUseNames] = useState<string[]>([]);
 
   const isReadOnly = project?.userRole === 'VIEWER' || project?.userStatus === 'PENDING';
 
@@ -267,6 +270,16 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
         ownerName: project.ownerName || '',
         firmName: project.firmName || '',
       });
+    } else if (card === 'services') {
+      setCardListData([...project.services]);
+    } else if (card === 'facilityUses') {
+      setCardListData(project.facilityUses.map((facilityUse) => facilityUse.name));
+      if (allFacilityUseNames.length === 0) {
+        fetch('/api/facility-uses')
+          .then((res) => res.json())
+          .then((data) => setAllFacilityUseNames(Array.isArray(data) ? data.map((f: { name: string }) => f.name) : []))
+          .catch(() => setAllFacilityUseNames([]));
+      }
     } else {
       setCardFormData({ certification: project.certification });
     }
@@ -276,11 +289,18 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
   const cancelEditingCard = () => {
     setEditingCard(null);
     setCardFormData({});
+    setCardListData([]);
     setCardError(null);
   };
 
   const updateCardField = (field: string, value: string) => {
     setCardFormData((current) => ({ ...current, [field]: value }));
+  };
+
+  const toggleCardListItem = (value: string) => {
+    setCardListData((current) =>
+      current.includes(value) ? current.filter((v) => v !== value) : [...current, value]
+    );
   };
 
   const saveCard = async () => {
@@ -308,8 +328,8 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
           buildingArea: cardFormData.buildingArea ?? project.buildingArea,
           siteArea: cardFormData.siteArea ?? project.siteArea,
           certification: cardFormData.certification ?? project.certification,
-          services: project.services,
-          facilityUses: project.facilityUses.map((facilityUse) => facilityUse.name),
+          services: editingCard === 'services' ? cardListData : project.services,
+          facilityUses: editingCard === 'facilityUses' ? cardListData : project.facilityUses.map((facilityUse) => facilityUse.name),
         }),
       });
       const data = await response.json().catch(() => ({}));
@@ -521,7 +541,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
             {!isReadOnly && !isCertified && (
               <div className="mt-6 flex justify-end">
                 <Link href={`/projects/${id}/checklist`} onClick={handleLockedLinkClick} className="text-xs text-secondary flex items-center gap-1 hover:underline">
-                  <Edit size={12} /> Edit
+                  <Edit size={12} /> Edit Solutions
                 </Link>
               </div>
             )}
@@ -555,22 +575,94 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
                 <HelpCircle size={15} className="text-slate-400 hover:text-secondary" />
               </a>
             </h2>
-            <ul className="space-y-1 text-sm text-slate-700">
-              {project.services.length > 0 ? (
-                project.services.map((s) => (
-                  <li key={s}>- {s}</li>
-                ))
-              ) : (
-                <li className="text-slate-400 italic">No services selected</li>
-              )}
-            </ul>
+            {editingCard === 'services' ? (
+              <div className="space-y-3">
+                <div className="flex flex-col gap-2">
+                  {serviceOptions.map((service) => (
+                    <label key={service} className="flex items-center gap-2 cursor-pointer text-sm text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={cardListData.includes(service)}
+                        onChange={() => toggleCardListItem(service)}
+                        className="w-4 h-4 text-secondary focus:ring-secondary border-slate-300 rounded"
+                      />
+                      {service}
+                    </label>
+                  ))}
+                </div>
+                {cardError && <p className="text-xs font-medium text-red-600">{cardError}</p>}
+                <CardEditActions onSave={saveCard} onCancel={cancelEditingCard} saving={savingCard} />
+              </div>
+            ) : (
+              <ul className="space-y-1 text-sm text-slate-700">
+                {project.services.length > 0 ? (
+                  project.services.map((s) => (
+                    <li key={s}>- {s}</li>
+                  ))
+                ) : (
+                  <li className="text-slate-400 italic">No services selected</li>
+                )}
+              </ul>
+            )}
+            {!isReadOnly && editingCard !== 'services' && (
+              <div className="mt-4 flex justify-end">
+                <button type="button" onClick={() => handleCardEditClick('services')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
+                  <Edit size={12} /> Edit Services
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Facility Uses */}
+          <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-primary mb-4">Facility Uses</h2>
+            {editingCard === 'facilityUses' ? (
+              <div className="space-y-3">
+                <div className="max-h-64 overflow-y-auto flex flex-col gap-2 pr-1">
+                  {allFacilityUseNames.length === 0 ? (
+                    <p className="text-xs text-slate-400 italic">Loading options...</p>
+                  ) : (
+                    allFacilityUseNames.map((name) => (
+                      <label key={name} className="flex items-start gap-2 cursor-pointer text-sm text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={cardListData.includes(name)}
+                          onChange={() => toggleCardListItem(name)}
+                          className="mt-0.5 w-4 h-4 text-secondary focus:ring-secondary border-slate-300 rounded"
+                        />
+                        {name}
+                      </label>
+                    ))
+                  )}
+                </div>
+                {cardError && <p className="text-xs font-medium text-red-600">{cardError}</p>}
+                <CardEditActions onSave={saveCard} onCancel={cancelEditingCard} saving={savingCard} />
+              </div>
+            ) : (
+              <ul className="space-y-1 text-sm text-slate-700">
+                {project.facilityUses.length > 0 ? (
+                  project.facilityUses.map((facilityUse) => (
+                    <li key={facilityUse.id}>- {facilityUse.name}</li>
+                  ))
+                ) : (
+                  <li className="text-slate-400 italic">No facility uses selected</li>
+                )}
+              </ul>
+            )}
+            {!isReadOnly && editingCard !== 'facilityUses' && (
+              <div className="mt-4 flex justify-end">
+                <button type="button" onClick={() => handleCardEditClick('facilityUses')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
+                  <Edit size={12} /> Edit Facility Uses
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="bg-white border border-slate-200 rounded-sm p-6 shadow-sm">
             {editingCard === 'certification' ? (
               <div className="space-y-3">
                 <h2 className="text-lg font-bold text-primary mb-2 flex items-center gap-1.5">
-                  Certification
+                  Certification Type
                   <a
                     href="https://thisisud.com/services/"
                     target="_blank"
@@ -611,7 +703,7 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
             ) : (
               <div>
                 <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-1.5">
-                  Certification
+                  Certification Type
                   <a
                     href="https://thisisud.com/services/"
                     target="_blank"
@@ -622,13 +714,13 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
                     <HelpCircle size={15} className="text-slate-400 hover:text-secondary" />
                   </a>
                 </h2>
-                <p className="text-sm"><span className="font-bold text-slate-700">Type:</span> {project.certification}</p>
+                <p className="text-sm">{project.certification}</p>
               </div>
             )}
             {!isReadOnly && editingCard !== 'certification' && (
               <div className="mt-3 flex justify-end">
                 <button type="button" onClick={() => handleCardEditClick('certification')} className="text-xs text-secondary flex items-center gap-1 hover:underline">
-                  <Edit size={12} /> Edit
+                  <Edit size={12} /> Edit Certification Type
                 </button>
               </div>
             )}

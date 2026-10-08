@@ -88,13 +88,15 @@ export const PreliminaryProgress: React.FC<PreliminaryProgressProps> = ({
                 {earnedCreditText}
               </p>
               {!status.isThresholdMet && <BulletColumns items={status.failedSections} />}
-              <Link
-                href={`/projects/${projectId}/checklist`}
-                className="mt-3 inline-flex items-center gap-1 text-xs text-secondary hover:underline"
-              >
-                <Edit3 className="h-3 w-3" />
-                Edit Solutions
-              </Link>
+              <div className="mt-3 flex justify-end">
+                <Link
+                  href={`/projects/${projectId}/checklist`}
+                  className="inline-flex items-center gap-1 text-xs text-secondary hover:underline"
+                >
+                  <Edit3 className="h-3 w-3" />
+                  Edit Solutions
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -108,13 +110,15 @@ export const PreliminaryProgress: React.FC<PreliminaryProgressProps> = ({
                   : 'You have not selected all required solutions. Please review the following sections to ensure all required solutions are implemented.'}
               </p>
               {!status.isMandatoryMet && <BulletColumns items={status.missingMandatorySections} />}
-              <Link
-                href={`/projects/${projectId}/checklist`}
-                className="mt-3 inline-flex items-center gap-1 text-xs text-secondary hover:underline"
-              >
-                <Edit3 className="h-3 w-3" />
-                Edit Solutions
-              </Link>
+              <div className="mt-3 flex justify-end">
+                <Link
+                  href={`/projects/${projectId}/checklist`}
+                  className="inline-flex items-center gap-1 text-xs text-secondary hover:underline"
+                >
+                  <Edit3 className="h-3 w-3" />
+                  Edit Solutions
+                </Link>
+              </div>
             </div>
           </div>
         </div>
