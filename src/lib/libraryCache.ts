@@ -16,12 +16,16 @@ export const getCachedLibrary = unstable_cache(
           where: { archivedAt: null },
           orderBy: { number: 'asc' },
           include: {
+            subSections: {
+              where: { archivedAt: null },
+              select: { id: true, minPoints1: true, minPoints2: true, minPoints3: true },
+            },
             solutions: {
               where: { archivedAt: null },
               orderBy: { standardNumber: 'asc' },
               include: {
                 subSection: {
-                  select: { id: true, number: true, title: true },
+                  select: { id: true, number: true, title: true, totalCredits: true, minPoints1: true, minPoints2: true, minPoints3: true },
                 },
                 goals: {
                   where: { archivedAt: null },
@@ -62,7 +66,11 @@ export const getCachedScoringLibrary = unstable_cache(
           include: {
             solutions: {
               where: { archivedAt: null },
-              select: { id: true, points: true, isMandatory: true, standardNumber: true },
+              select: { id: true, points: true, isMandatory: true, standardNumber: true, subSectionId: true },
+            },
+            subSections: {
+              where: { archivedAt: null },
+              select: { id: true, minPoints1: true, minPoints2: true, minPoints3: true, totalCredits: true },
             },
           },
         },

@@ -5,6 +5,27 @@ import { Images } from 'lucide-react';
 import { ChecklistSolutionItem } from './ChecklistSolutionItem';
 import { ResponseStatus } from '@prisma/client';
 
+// Mirrors the tier semantics in src/lib/scoring.ts: tier N (minPointsN) awards
+// N credits (capped at the group's totalCredits), not "half vs full".
+function formatThresholdText(
+  minPoints1: number,
+  minPoints2: number,
+  minPoints3: number,
+  totalCredits: number,
+  itemCount: number
+) {
+  const tiers: { credits: number; implement: number }[] = [];
+  if (minPoints3 > 0) tiers.push({ credits: Math.min(3, totalCredits), implement: minPoints3 });
+  if (minPoints2 > 0) tiers.push({ credits: Math.min(2, totalCredits), implement: minPoints2 });
+  if (minPoints1 > 0) tiers.push({ credits: Math.min(1, totalCredits), implement: minPoints1 });
+  if (tiers.length === 0) return null;
+
+  tiers.sort((a, b) => b.credits - a.credits);
+  return tiers
+    .map((t) => `${t.credits} Credit${t.credits === 1 ? '' : 's'}: Implement ${t.implement} of ${itemCount}`)
+    .join('  |  ');
+}
+
 interface SectionListProps {
   chapter: any;
   responses: Record<string, ResponseStatus>;
@@ -204,31 +225,55 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
                 <div className="px-6 py-2 bg-slate-50 border-b border-slate-200 h-10 flex items-center">
                   {!isSectionEnabled ? (
                     <span className="text-[12px] font-bold text-slate-600 uppercase tracking-widest">Section excluded from available credits</span>
-                  ) : (section.minPoints1 > 0 || section.minPoints2 > 0) ? (
-                    <span className="text-[12px] font-semibold text-slate-900">
-                      {section.minPoints2 > 0 && `${section.totalCredits} Credits: Implement ${section.minPoints2} of ${totalSolutions}`}
-                      {section.minPoints2 > 0 && section.minPoints1 > 0 && ' | '}
-                      {section.minPoints1 > 0 && `${Math.max(1, Math.floor(section.totalCredits / 2))} Credit: Implement ${section.minPoints1} of ${totalSolutions}`}
-                    </span>
-                  ) : (
-                    <span className="text-[12px] font-medium text-slate-600 uppercase tracking-widest">Standard Point Value</span>
-                  )}
+                  ) : (() => {
+                    const text = formatThresholdText(section.minPoints1, section.minPoints2, section.minPoints3, section.totalCredits, totalSolutions);
+                    if (text) {
+                      return <span className="text-[12px] font-semibold text-slate-900">{text}</span>;
+                    }
+                    const hasSubSectionThresholds = section.subSections?.some(
+                      (sub: any) => sub.minPoints1 > 0 || sub.minPoints2 > 0 || sub.minPoints3 > 0
+                    );
+                    return (
+                      <span className="text-[12px] font-medium text-slate-600 uppercase tracking-widest">
+                        {hasSubSectionThresholds ? 'Credit requirements below are per subsection' : 'Standard Point Value'}
+                      </span>
+                    );
+                  })()}
                 </div>
                 <div className="divide-y divide-slate-100">
                   {(() => {
                     let lastSubSectionId: string | null = null;
+                    const subSectionItemCounts = new Map<string, number>();
+                    section.solutions.forEach((sol: any) => {
+                      if (!sol.subSectionId) return;
+                      subSectionItemCounts.set(sol.subSectionId, (subSectionItemCounts.get(sol.subSectionId) || 0) + 1);
+                    });
+
                     return section.solutions.map((sol: any) => {
                       const subSectionId = sol.subSectionId || null;
                       const showSubSectionHeading = Boolean(subSectionId && subSectionId !== lastSubSectionId && sol.subSection);
                       lastSubSectionId = subSectionId;
 
+                      const subSectionThresholdText = showSubSectionHeading
+                        ? formatThresholdText(
+                            sol.subSection.minPoints1,
+                            sol.subSection.minPoints2,
+                            sol.subSection.minPoints3,
+                            sol.subSection.totalCredits,
+                            subSectionItemCounts.get(subSectionId!) || 0
+                          )
+                        : null;
+
                       return (
                         <React.Fragment key={sol.id}>
                           {showSubSectionHeading && (
-                            <div className="bg-slate-50 px-6 py-2">
+                            <div className="bg-slate-50 px-6 py-2 flex items-center justify-between gap-4">
                               <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
                                 {displaySectionNumber}.{sol.subSection.number} {sol.subSection.title}
                               </span>
+                              {subSectionThresholdText && (
+                                <span className="text-[11px] font-semibold text-slate-700 shrink-0">{subSectionThresholdText}</span>
+                              )}
                             </div>
                           )}
                           <ChecklistSolutionItem
