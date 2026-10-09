@@ -90,7 +90,12 @@ export async function GET(
     const legacyChapterEarned = project.legacyChapterEarned
       ?.split(',')
       .map((value) => Number(value.trim()));
-    const hasLegacyScores = project.legacyAwardPercentage !== null;
+    // Legacy scores are a frozen historical record from before this platform
+    // existed. Only trust them once a project is actually COMPLETED - for
+    // anything still ONGOING/IN_REVIEW, live checklist edits must drive the
+    // displayed score and the submit gate, or continuing work on a migrated
+    // project would be invisible and could block a legitimate resubmission.
+    const hasLegacyScores = project.legacyAwardPercentage !== null && project.status === 'COMPLETED';
 
     const formattedChapterScores = (scores.chapterScores || []).map((score, index) => {
       const chapter = chapters[index];
