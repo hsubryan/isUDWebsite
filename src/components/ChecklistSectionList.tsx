@@ -269,24 +269,26 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
               </div>
 
               <div className={`bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm ${isSectionEnabled ? '' : 'bg-slate-50'}`}>
-                <div className="px-6 py-2 bg-slate-50 border-b border-slate-200 h-10 flex items-center">
-                  {!isSectionEnabled ? (
-                    <span className="text-[12px] font-bold text-slate-600 uppercase tracking-widest">Section excluded from available credits</span>
-                  ) : (() => {
-                    const text = formatThresholdText(section.minPoints1, section.minPoints2, section.minPoints3, section.totalCredits, totalSolutions);
-                    if (text) {
-                      return <span className="text-[12px] font-semibold text-slate-900">{text}</span>;
-                    }
-                    const hasSubSectionThresholds = section.subSections?.some(
-                      (sub: any) => sub.minPoints1 > 0 || sub.minPoints2 > 0 || sub.minPoints3 > 0
-                    );
-                    return (
-                      <span className="text-[12px] font-medium text-slate-600 uppercase tracking-widest">
-                        {hasSubSectionThresholds ? 'Credit requirements below are per subsection' : 'Standard Point Value'}
-                      </span>
-                    );
-                  })()}
-                </div>
+                {!allDetailsExpanded && (
+                  <div className="px-6 py-2 bg-slate-50 border-b border-slate-200 h-10 flex items-center">
+                    {!isSectionEnabled ? (
+                      <span className="text-[12px] font-bold text-slate-600 uppercase tracking-widest">Section excluded from available credits</span>
+                    ) : (() => {
+                      const text = formatThresholdText(section.minPoints1, section.minPoints2, section.minPoints3, section.totalCredits, totalSolutions);
+                      if (text) {
+                        return <span className="text-[12px] font-semibold text-slate-900">{text}</span>;
+                      }
+                      const hasSubSectionThresholds = section.subSections?.some(
+                        (sub: any) => sub.minPoints1 > 0 || sub.minPoints2 > 0 || sub.minPoints3 > 0
+                      );
+                      return (
+                        <span className="text-[12px] font-medium text-slate-600 uppercase tracking-widest">
+                          {hasSubSectionThresholds ? 'Credit requirements below are per subsection' : 'Standard Point Value'}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                )}
                 <div className="divide-y divide-slate-100">
                   {(() => {
                     let lastSubSectionId: string | null = null;
@@ -318,7 +320,7 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
                               <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
                                 {displaySectionNumber}.{sol.subSection.number} {sol.subSection.title}
                               </span>
-                              {subSectionThresholdText && (
+                              {subSectionThresholdText && !allDetailsExpanded && (
                                 <span className="text-[11px] font-semibold text-slate-700 shrink-0">{subSectionThresholdText}</span>
                               )}
                             </div>
