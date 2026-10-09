@@ -172,7 +172,9 @@ export async function GET() {
 
     const projectsWithScores = projects.map((project) => {
       const scores = calculateProjectScore(chapters, project.responses, project.sectionToggles);
-      const hasLegacyScores = project.legacyAwardPercentage !== null;
+      // Only trust legacy scores once a project is actually COMPLETED - see
+      // src/app/api/projects/[id]/route.ts for the full rationale.
+      const hasLegacyScores = project.legacyAwardPercentage !== null && project.status === 'COMPLETED';
       const totalAvailable = hasLegacyScores
         ? project.legacyApplicableCredits || 0
         : scores.chapterScores.reduce((sum, chapter) => sum + chapter.total, 0);
