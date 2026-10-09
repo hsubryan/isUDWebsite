@@ -14,6 +14,8 @@ interface SolutionProps {
   readOnly?: boolean;
   figuresExpanded?: boolean;
   onToggleFigures?: () => void;
+  detailsExpanded?: boolean;
+  onToggleDetails?: () => void;
 }
 
 function isDataUri(src: string) {
@@ -29,9 +31,13 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
   readOnly = false,
   figuresExpanded: figuresExpandedProp,
   onToggleFigures,
+  detailsExpanded: detailsExpandedProp,
+  onToggleDetails,
 }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [detailsExpandedState, setDetailsExpandedState] = useState(false);
   const [figuresExpandedState, setFiguresExpandedState] = useState(false);
+  const expanded = detailsExpandedProp ?? detailsExpandedState;
+  const toggleDetails = onToggleDetails ?? (() => setDetailsExpandedState((value) => !value));
   const figuresExpanded = figuresExpandedProp ?? figuresExpandedState;
   const toggleFigures = onToggleFigures ?? (() => setFiguresExpandedState((value) => !value));
   const figures = Array.isArray(solution.figures)
@@ -53,7 +59,7 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
       <div className="flex items-start gap-4 py-4 px-2 hover:bg-slate-50 transition-colors group">
         <button
           type="button"
-          onClick={() => setExpanded(!expanded)}
+          onClick={toggleDetails}
           className="mt-1 p-0.5 rounded-full border-2 border-slate-500 text-slate-600 hover:border-primary hover:text-primary transition-colors"
           aria-label={expanded ? 'Hide solution details' : 'Show solution details'}
           aria-expanded={expanded}
