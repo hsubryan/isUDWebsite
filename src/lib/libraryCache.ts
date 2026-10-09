@@ -18,7 +18,7 @@ export const getCachedLibrary = unstable_cache(
           include: {
             subSections: {
               where: { archivedAt: null },
-              select: { id: true, minPoints1: true, minPoints2: true, minPoints3: true },
+              select: { id: true, minPoints1: true, minPoints2: true, minPoints3: true, totalCredits: true },
             },
             solutions: {
               where: { archivedAt: null },
