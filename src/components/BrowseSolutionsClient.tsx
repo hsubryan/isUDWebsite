@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
-import { ChevronRight, Image as ImageIcon, Images, Minus, Plus, Printer, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image as ImageIcon, Images, Minus, Plus, Printer, Search } from 'lucide-react';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 
 type Solution = {
@@ -64,6 +64,7 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
   const [expandedChapterId, setExpandedChapterId] = useState(chapters[0]?.id || '');
   const [activeSectionId, setActiveSectionId] = useState('');
   const [expandedSolutionIds, setExpandedSolutionIds] = useState<Record<string, boolean>>({});
+  const [figureIndexBySolution, setFigureIndexBySolution] = useState<Record<string, number>>({});
   const [query, setQuery] = useState('');
 
   const activeChapter = chapters.find((chapter) => chapter.id === activeChapterId) || chapters[0];
@@ -386,39 +387,88 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
                                         <p className="mt-1">{solution.phases.map((phase) => phase.name).join(', ') || 'None listed'}</p>
                                       </div>
                                     </div>
-                                    {figures.length > 0 && (
-                                      <div className="space-y-4">
-                                        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Figures</p>
-                                        {figures.map((figure) => (
-                                          <figure key={figure.id} className="rounded-md border border-slate-200 bg-white p-4">
-                                            {figure.url && isDataImage(figure.url) ? (
-                                              // eslint-disable-next-line @next/next/no-img-element
-                                              <img
-                                                src={figure.url}
-                                                alt={figure.altTag || figure.caption || figure.number || 'Solution figure'}
-                                                className="mx-auto max-h-[420px] w-auto max-w-full rounded-sm object-contain"
-                                                loading="lazy"
-                                              />
-                                            ) : (
-                                              <Image
-                                                src={figure.url || ''}
-                                                alt={figure.altTag || figure.caption || figure.number || 'Solution figure'}
-                                                width={900}
-                                                height={600}
-                                                className="mx-auto max-h-[420px] w-auto max-w-full rounded-sm object-contain"
-                                                loading="lazy"
-                                                unoptimized
-                                              />
+                                    {figures.length > 0 && (() => {
+                                      const figureIndex = figureIndexBySolution[solution.id] ?? 0;
+                                      const activeFigure = figures[figureIndex] || figures[0];
+                                      return (
+                                        <div className="max-w-xl mx-auto">
+                                          <div className="relative rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+                                            {figures.length > 1 && (
+                                              <button
+                                                type="button"
+                                                onClick={() => setFigureIndexBySolution((prev) => ({
+                                                  ...prev,
+                                                  [solution.id]: (figureIndex - 1 + figures.length) % figures.length,
+                                                }))}
+                                                className="absolute left-2 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-sm hover:border-secondary hover:text-secondary transition-colors"
+                                                aria-label="Previous image"
+                                              >
+                                                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                                              </button>
                                             )}
-                                            {figure.caption && (
-                                              <figcaption className="mt-3 text-center text-xs leading-5 text-slate-600">
-                                                {figure.caption}
-                                              </figcaption>
+
+                                            <figure>
+                                              {activeFigure.url && isDataImage(activeFigure.url) ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img
+                                                  src={activeFigure.url}
+                                                  alt={activeFigure.altTag || activeFigure.caption || activeFigure.number || 'Solution figure'}
+                                                  className="mx-auto max-h-[420px] w-auto max-w-full rounded-sm object-contain"
+                                                  loading="lazy"
+                                                />
+                                              ) : (
+                                                <Image
+                                                  src={activeFigure.url || ''}
+                                                  alt={activeFigure.altTag || activeFigure.caption || activeFigure.number || 'Solution figure'}
+                                                  width={900}
+                                                  height={600}
+                                                  className="mx-auto max-h-[420px] w-auto max-w-full rounded-sm object-contain"
+                                                  loading="lazy"
+                                                  unoptimized
+                                                />
+                                              )}
+                                              {activeFigure.caption && (
+                                                <figcaption className="mt-3 text-center text-xs leading-5 text-slate-600">
+                                                  {activeFigure.caption}
+                                                </figcaption>
+                                              )}
+                                            </figure>
+
+                                            {figures.length > 1 && (
+                                              <button
+                                                type="button"
+                                                onClick={() => setFigureIndexBySolution((prev) => ({
+                                                  ...prev,
+                                                  [solution.id]: (figureIndex + 1) % figures.length,
+                                                }))}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-sm hover:border-secondary hover:text-secondary transition-colors"
+                                                aria-label="Next image"
+                                              >
+                                                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                                              </button>
                                             )}
-                                          </figure>
-                                        ))}
-                                      </div>
-                                    )}
+                                          </div>
+
+                                          {figures.length > 1 && (
+                                            <div className="flex justify-center gap-1.5 mt-3">
+                                              {figures.map((figure, idx) => (
+                                                <button
+                                                  key={figure.id}
+                                                  type="button"
+                                                  onClick={() => setFigureIndexBySolution((prev) => ({ ...prev, [solution.id]: idx }))}
+                                                  className={cn(
+                                                    'h-2 w-2 rounded-full transition-colors',
+                                                    idx === figureIndex ? 'bg-primary' : 'bg-slate-300 hover:bg-slate-400'
+                                                  )}
+                                                  aria-label={`Go to image ${idx + 1} of ${figures.length}`}
+                                                  aria-current={idx === figureIndex}
+                                                />
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })()}
                                   </div>
                                 )}
                               </div>
