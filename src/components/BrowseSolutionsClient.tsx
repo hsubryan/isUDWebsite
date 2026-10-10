@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
-import { ArrowRight, ChevronRight, Image as ImageIcon, Images, Minus, Plus, Printer, Search } from 'lucide-react';
+import { ChevronRight, Image as ImageIcon, Images, Minus, Plus, Printer, Search } from 'lucide-react';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 
 type Solution = {
@@ -61,11 +61,24 @@ function escapeHtml(value: string) {
 
 export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClientProps) {
   const [activeChapterId, setActiveChapterId] = useState(chapters[0]?.id || '');
+  const [expandedChapterId, setExpandedChapterId] = useState(chapters[0]?.id || '');
   const [activeSectionId, setActiveSectionId] = useState('');
   const [expandedSolutionIds, setExpandedSolutionIds] = useState<Record<string, boolean>>({});
   const [query, setQuery] = useState('');
 
   const activeChapter = chapters.find((chapter) => chapter.id === activeChapterId) || chapters[0];
+
+  const toggleChapter = (chapterId: string) => {
+    setExpandedChapterId((prev) => (prev === chapterId ? '' : chapterId));
+    setActiveChapterId(chapterId);
+    setActiveSectionId('');
+  };
+
+  const selectSection = (chapterId: string, sectionId: string) => {
+    setActiveChapterId(chapterId);
+    setActiveSectionId(sectionId);
+    setExpandedChapterId(chapterId);
+  };
 
   const visibleSections = useMemo(() => {
     if (!activeChapter) return [];
@@ -152,7 +165,7 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <Breadcrumbs items={breadcrumbItems} />
 
       <div className="bg-white border border-slate-200 rounded-sm px-6 py-4 flex items-center shadow-sm">
@@ -188,89 +201,91 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[640px]">
-          <div className="lg:col-span-3 border-r border-slate-200 bg-white">
+          <div className="lg:col-span-4 border-r border-slate-200 bg-white">
             <div className="border-b border-slate-100 px-6 py-3">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Chapters</p>
             </div>
             <div className="max-h-[720px] overflow-y-auto">
-              {chapters.map((chapter) => (
-                <button
-                  key={chapter.id}
-                  onClick={() => {
-                    setActiveChapterId(chapter.id);
-                    setActiveSectionId('');
-                  }}
-                  className={cn(
-                    'w-full flex items-center justify-between px-6 py-4 text-left transition-all group border-b border-slate-100',
-                    activeChapter?.id === chapter.id ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'
-                  )}
-                >
-                  <div className="flex gap-4 min-w-0">
-                    <span className={cn('text-xl font-bold shrink-0 w-7', activeChapter?.id === chapter.id ? 'text-secondary' : 'text-primary')}>
-                      {chapter.number}
-                    </span>
-                    <div className="space-y-0.5 min-w-0">
-                      <div className={cn('text-[15px] font-bold tracking-tight', activeChapter?.id === chapter.id ? 'text-primary' : 'text-slate-700')}>
-                        {chapter.title}
+              {chapters.map((chapter) => {
+                const isActiveChapter = activeChapter?.id === chapter.id;
+                const isExpanded = expandedChapterId === chapter.id;
+                return (
+                  <div key={chapter.id} className="border-b border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => toggleChapter(chapter.id)}
+                      className={cn(
+                        'w-full flex items-center justify-between px-6 py-4 text-left transition-all group',
+                        isActiveChapter ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'
+                      )}
+                    >
+                      <div className="flex gap-4 min-w-0">
+                        <span className={cn('text-xl font-bold shrink-0 w-7', isActiveChapter ? 'text-secondary' : 'text-primary')}>
+                          {chapter.number}
+                        </span>
+                        <div className="space-y-0.5 min-w-0">
+                          <div className={cn('text-[15px] font-bold tracking-tight', isActiveChapter ? 'text-primary' : 'text-slate-700')}>
+                            {chapter.title}
+                          </div>
+                          <div className={cn('text-[13px]', isActiveChapter ? 'text-secondary font-bold' : 'text-slate-500 font-medium')}>
+                            {chapter.totalCredits} Credits · {chapter.sections.length} Sections
+                          </div>
+                        </div>
                       </div>
-                      <div className={cn('text-[13px]', activeChapter?.id === chapter.id ? 'text-secondary font-bold' : 'text-slate-500 font-medium')}>
-                        {chapter.totalCredits} Credits · {chapter.sections.length} Sections
+                      <ChevronRight
+                        className={cn('shrink-0 transition-transform duration-200', isExpanded ? 'rotate-90 text-secondary' : 'text-slate-300')}
+                        size={22}
+                        strokeWidth={isExpanded ? 3 : 2}
+                      />
+                    </button>
+
+                    {isExpanded && (
+                      <div className="bg-slate-50 border-t border-slate-100 py-2 pl-14 pr-4 space-y-1">
+                        <button
+                          type="button"
+                          onClick={() => selectSection(chapter.id, '')}
+                          className={cn(
+                            'w-full rounded-sm px-3 py-2 text-left text-sm font-bold transition-colors',
+                            isActiveChapter && activeSectionId === '' ? 'bg-accent text-white' : 'text-primary hover:bg-primary/10'
+                          )}
+                        >
+                          All Sections
+                        </button>
+                        {chapter.sections.map((section) => {
+                          const isActiveSection = isActiveChapter && activeSectionId === section.id;
+                          return (
+                            <button
+                              key={section.id}
+                              type="button"
+                              onClick={() => selectSection(chapter.id, section.id)}
+                              className={cn(
+                                'w-full rounded-sm px-3 py-2 text-left transition-colors',
+                                isActiveSection ? 'bg-accent text-white' : 'text-primary hover:bg-primary/10'
+                              )}
+                            >
+                              <div className="flex gap-2">
+                                <span className="font-bold">{chapter.number}.{section.number}</span>
+                                <span className="text-sm font-semibold">{section.title}</span>
+                              </div>
+                              <div className={cn('mt-0.5 text-xs', isActiveSection ? 'text-white/80' : 'text-primary/50')}>
+                                {section.totalCredits} credits · {section.solutions.length} solutions
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
-                    </div>
+                    )}
                   </div>
-                  {activeChapter?.id === chapter.id ? (
-                    <ArrowRight className="text-secondary shrink-0" size={22} strokeWidth={3} />
-                  ) : (
-                    <ChevronRight className="text-slate-300 shrink-0" size={22} strokeWidth={2} />
-                  )}
-                </button>
-              ))}
+                );
+              })}
             </div>
           </div>
 
-          <div className="lg:col-span-9 bg-white">
+          <div className="lg:col-span-8 bg-white">
             {!activeChapter ? (
               <div className="p-10 text-sm text-slate-500">No solutions available.</div>
             ) : (
-              <div className="grid grid-cols-1 xl:grid-cols-12">
-                <aside className="xl:col-span-4 border-b xl:border-b-0 xl:border-r border-slate-200">
-                  <div className="border-b border-slate-100 px-6 py-3">
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Sections</p>
-                  </div>
-                  <div className="max-h-[720px] overflow-y-auto p-4 space-y-1">
-                    <button
-                      type="button"
-                      onClick={() => setActiveSectionId('')}
-                      className={cn(
-                        'w-full rounded-sm px-3 py-2 text-left text-sm font-bold transition-colors',
-                        activeSectionId === '' ? 'bg-accent text-white' : 'text-primary hover:bg-primary/10'
-                      )}
-                    >
-                      All Sections
-                    </button>
-                    {visibleSections.map((section) => (
-                      <button
-                        key={section.id}
-                        type="button"
-                        onClick={() => setActiveSectionId(section.id)}
-                        className={cn(
-                          'w-full rounded-sm px-3 py-2 text-left transition-colors',
-                          activeSectionId === section.id ? 'bg-accent text-white' : 'text-primary hover:bg-primary/10'
-                        )}
-                      >
-                        <div className="flex gap-2">
-                          <span className="font-bold">{activeChapter.number}.{section.number}</span>
-                          <span className="text-sm font-semibold">{section.title}</span>
-                        </div>
-                        <div className={cn('mt-0.5 text-xs', activeSectionId === section.id ? 'text-white/80' : 'text-primary/50')}>
-                          {section.totalCredits} credits · {section.solutions.length} solutions
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </aside>
-
-                <div className="xl:col-span-8 p-6 space-y-8">
+              <div className="p-6 space-y-8">
                   {visibleSolutionIds.length > 0 && (
                     <div className="flex justify-end">
                       <button
@@ -414,7 +429,6 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
                       </section>
                     ))
                   )}
-                </div>
               </div>
             )}
           </div>
