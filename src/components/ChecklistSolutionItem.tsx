@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Minus, Check, Image as ImageIcon } from 'lucide-react';
+import { Plus, Minus, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ResponseStatus } from '@prisma/client';
 
 interface SolutionProps {
@@ -12,8 +12,6 @@ interface SolutionProps {
   allGoals: any[];
   onStatusChange: (status: ResponseStatus) => void;
   readOnly?: boolean;
-  figuresExpanded?: boolean;
-  onToggleFigures?: () => void;
   detailsExpanded?: boolean;
   onToggleDetails?: () => void;
 }
@@ -29,20 +27,16 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
   allGoals,
   onStatusChange,
   readOnly = false,
-  figuresExpanded: figuresExpandedProp,
-  onToggleFigures,
   detailsExpanded: detailsExpandedProp,
   onToggleDetails,
 }) => {
   const [detailsExpandedState, setDetailsExpandedState] = useState(false);
-  const [figuresExpandedState, setFiguresExpandedState] = useState(false);
+  const [figureIndex, setFigureIndex] = useState(0);
   const expanded = detailsExpandedProp ?? detailsExpandedState;
   const toggleDetails = onToggleDetails ?? (() => setDetailsExpandedState((value) => !value));
-  const figuresExpanded = figuresExpandedProp ?? figuresExpandedState;
-  const toggleFigures = onToggleFigures ?? (() => setFiguresExpandedState((value) => !value));
-  const figures = Array.isArray(solution.figures)
+  const figures: any[] = Array.isArray(solution.figures)
     ? [
-        ...new Map(
+        ...new Map<string, any>(
           solution.figures
             .filter((figure: any) => figure.url)
             .map((figure: any) => [`${figure.number || ''}|${figure.url}`, figure])
@@ -77,22 +71,6 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
         </div>
 
         <div className="flex items-center gap-2 pr-2">
-          {figures.length > 0 && (
-            <button
-              type="button"
-              onClick={toggleFigures}
-              className={`inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors ${
-                figuresExpanded
-                  ? 'border-primary bg-primary text-white'
-                  : 'border-slate-300 bg-white text-primary hover:border-secondary hover:text-secondary'
-              }`}
-              aria-label={figuresExpanded ? 'Hide solution figure' : 'Show solution figure'}
-              aria-expanded={figuresExpanded}
-            >
-              <ImageIcon className="h-4 w-4" aria-hidden="true" />
-            </button>
-          )}
-
           {/* Status Selector - Single Toggle */}
           <button
             type="button"
@@ -117,35 +95,8 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
         </div>
       </div>
 
-      {figuresExpanded && figures.length > 0 && (
-        <div className="border-t border-slate-100 bg-white px-10 py-5">
-          <div className="space-y-5">
-            {figures.map((figure: any) => (
-              <figure key={figure.id} className="rounded-md border border-slate-200 bg-slate-50 p-4 shadow-sm">
-                {isDataUri(figure.url) ? null : (
-                  <Image
-                    src={figure.url}
-                    alt={figure.altTag || figure.caption || figure.number || 'Solution figure'}
-                    width={900}
-                    height={600}
-                    className="mx-auto max-h-[520px] w-auto max-w-full rounded-sm object-contain"
-                    loading="lazy"
-                    unoptimized
-                  />
-                )}
-                {figure.caption && (
-                  <figcaption className="mt-3 text-center text-xs leading-5 text-slate-600">
-                    {figure.caption}
-                  </figcaption>
-                )}
-              </figure>
-            ))}
-          </div>
-        </div>
-      )}
-
       {expanded && (
-        <div className="bg-slate-50/50 p-6 border-t border-slate-100 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="bg-slate-50/50 p-6 border-t border-slate-100 animate-in fade-in slide-in-from-top-2 duration-200 space-y-6">
           <div className="max-w-4xl overflow-x-auto">
             <table className="w-full text-xs text-slate-600 border-collapse shadow-sm rounded-lg overflow-hidden border border-slate-300">
               <thead>
@@ -183,6 +134,68 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
               </thead>
             </table>
           </div>
+
+          {figures.length > 0 && (
+            <div className="max-w-xl mx-auto">
+              <div className="relative rounded-md border border-slate-200 bg-slate-50 p-4 shadow-sm">
+                {figures.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setFigureIndex((i) => (i - 1 + figures.length) % figures.length)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-sm hover:border-secondary hover:text-secondary transition-colors"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                )}
+
+                <figure>
+                  {!isDataUri(figures[figureIndex].url) && (
+                    <Image
+                      src={figures[figureIndex].url}
+                      alt={figures[figureIndex].altTag || figures[figureIndex].caption || figures[figureIndex].number || 'Solution figure'}
+                      width={900}
+                      height={600}
+                      className="mx-auto max-h-[420px] w-auto max-w-full rounded-sm object-contain"
+                      loading="lazy"
+                      unoptimized
+                    />
+                  )}
+                  {figures[figureIndex].caption && (
+                    <figcaption className="mt-3 text-center text-xs leading-5 text-slate-600">
+                      {figures[figureIndex].caption}
+                    </figcaption>
+                  )}
+                </figure>
+
+                {figures.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setFigureIndex((i) => (i + 1) % figures.length)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-sm hover:border-secondary hover:text-secondary transition-colors"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+
+              {figures.length > 1 && (
+                <div className="flex justify-center gap-1.5 mt-3">
+                  {figures.map((figure: any, idx: number) => (
+                    <button
+                      key={figure.id}
+                      type="button"
+                      onClick={() => setFigureIndex(idx)}
+                      className={`h-2 w-2 rounded-full transition-colors ${idx === figureIndex ? 'bg-primary' : 'bg-slate-300 hover:bg-slate-400'}`}
+                      aria-label={`Go to image ${idx + 1} of ${figures.length}`}
+                      aria-current={idx === figureIndex}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

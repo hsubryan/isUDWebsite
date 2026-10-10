@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Images, List } from 'lucide-react';
+import { List } from 'lucide-react';
 import { ChecklistSolutionItem } from './ChecklistSolutionItem';
 import { ResponseStatus } from '@prisma/client';
 
@@ -47,20 +47,7 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
   onSectionToggleChange,
   readOnly = false,
 }) => {
-  const [expandedFigureIds, setExpandedFigureIds] = useState<Set<string>>(new Set());
   const [expandedDetailIds, setExpandedDetailIds] = useState<Set<string>>(new Set());
-
-  const solutionIdsWithFigures = useMemo(() => {
-    const ids = new Set<string>();
-    chapter.sections.forEach((section: any) => {
-      section.solutions.forEach((sol: any) => {
-        if (Array.isArray(sol.figures) && sol.figures.some((figure: any) => figure.url)) {
-          ids.add(sol.id);
-        }
-      });
-    });
-    return ids;
-  }, [chapter]);
 
   const allSolutionIds = useMemo(() => {
     const ids = new Set<string>();
@@ -70,34 +57,11 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
     return ids;
   }, [chapter]);
 
-  const allFiguresExpanded = solutionIdsWithFigures.size > 0
-    && [...solutionIdsWithFigures].every((id) => expandedFigureIds.has(id));
-
   const allDetailsExpanded = allSolutionIds.size > 0
     && [...allSolutionIds].every((id) => expandedDetailIds.has(id));
 
-  // Expanding images also collapses the detail panels so the two don't
-  // compete for space; expanding details leaves images untouched.
-  const toggleAllFigures = () => {
-    if (allFiguresExpanded) {
-      setExpandedFigureIds(new Set());
-    } else {
-      setExpandedFigureIds(new Set(solutionIdsWithFigures));
-      setExpandedDetailIds(new Set());
-    }
-  };
-
   const toggleAllDetails = () => {
     setExpandedDetailIds(allDetailsExpanded ? new Set() : new Set(allSolutionIds));
-  };
-
-  const toggleFigure = (solutionId: string) => {
-    setExpandedFigureIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(solutionId)) next.delete(solutionId);
-      else next.add(solutionId);
-      return next;
-    });
   };
 
   const toggleDetail = (solutionId: string) => {
@@ -126,17 +90,6 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
             >
               <List className="h-4 w-4" aria-hidden="true" />
               {allDetailsExpanded ? 'Collapse All Sections' : 'Expand All Sections'}
-            </button>
-          )}
-
-          {solutionIdsWithFigures.size > 0 && (
-            <button
-              type="button"
-              onClick={toggleAllFigures}
-              className="flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-600 transition-colors hover:border-secondary hover:text-secondary"
-            >
-              <Images className="h-4 w-4" aria-hidden="true" />
-              {allFiguresExpanded ? 'Collapse All Images' : 'Expand All Images'}
             </button>
           )}
         </div>
@@ -174,8 +127,6 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
                       allGoals={allGoals}
                       onStatusChange={(status) => onStatusChange(sol.id, status)}
                       readOnly={readOnly}
-                      figuresExpanded={expandedFigureIds.has(sol.id)}
-                      onToggleFigures={() => toggleFigure(sol.id)}
                       detailsExpanded={expandedDetailIds.has(sol.id)}
                       onToggleDetails={() => toggleDetail(sol.id)}
                     />
@@ -332,8 +283,6 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
                             allGoals={allGoals}
                             onStatusChange={(status) => onStatusChange(sol.id, status)}
                             readOnly={readOnly || !isSectionEnabled}
-                            figuresExpanded={expandedFigureIds.has(sol.id)}
-                            onToggleFigures={() => toggleFigure(sol.id)}
                             detailsExpanded={expandedDetailIds.has(sol.id)}
                             onToggleDetails={() => toggleDetail(sol.id)}
                           />
