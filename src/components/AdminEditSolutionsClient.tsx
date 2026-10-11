@@ -464,7 +464,7 @@ export default function AdminEditSolutionsClient() {
           Loading solution library
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(260px,0.9fr)_minmax(320px,1.1fr)] xl:grid-cols-[280px_360px_minmax(460px,1fr)]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(320px,1fr)_minmax(380px,1.1fr)] xl:grid-cols-[380px_440px_minmax(460px,1fr)] 2xl:grid-cols-[420px_480px_minmax(460px,1fr)]">
           <aside className="min-w-0 border border-slate-200 bg-white shadow-sm">
             <PanelHeader label="Chapters" onAdd={() => editChapter()} />
             <div className="max-h-[420px] overflow-y-auto divide-y divide-slate-100 2xl:max-h-[620px]">
@@ -690,10 +690,10 @@ function ListRow({
   onMoveDown: () => void;
 }) {
   return (
-    <div className={cn('flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center', compact ? 'rounded-md bg-white px-2 py-2' : 'px-4 py-3', active && 'bg-primary/5', archived && 'opacity-65')}>
+    <div className={cn('flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-start', compact ? 'rounded-md bg-white px-2 py-2' : 'px-4 py-3', active && 'bg-primary/5', archived && 'opacity-65')}>
       <button type="button" onClick={onSelect} className="min-w-0 flex-1 text-left">
-        <div className="truncate text-sm font-bold text-slate-800">{title}</div>
-        <div className="truncate text-xs font-medium text-slate-400">{meta}</div>
+        <div className="break-words text-sm font-bold leading-snug text-slate-800">{title}</div>
+        <div className="break-words text-xs font-medium text-slate-400">{meta}</div>
       </button>
       <RowActions archived={archived} onEdit={onEdit} onArchive={onArchive} onMoveUp={onMoveUp} onMoveDown={onMoveDown} />
     </div>
