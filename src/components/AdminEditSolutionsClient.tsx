@@ -508,7 +508,7 @@ export default function AdminEditSolutionsClient() {
                       onMoveDown={() => moveAction('section', section.id, 'down')}
                     />
                     {activeSection?.id === section.id && (
-                      <div className="bg-slate-50 border-t border-slate-100 py-3 pl-14 pr-4">
+                      <div className="bg-slate-50 px-4 py-3">
                         <div className="mb-2 flex items-center justify-between">
                           <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Subsections</p>
                           <button
