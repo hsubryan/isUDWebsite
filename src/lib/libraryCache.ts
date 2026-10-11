@@ -1,5 +1,6 @@
 import { unstable_cache } from 'next/cache';
 import { prisma } from './prisma';
+import { sortChapterGoalsPhases } from './phaseGoalOrder';
 
 /**
  * Full chapter library (chapters → sections → solutions → goals/phases/figures).
@@ -8,7 +9,7 @@ import { prisma } from './prisma';
  */
 export const getCachedLibrary = unstable_cache(
   async () => {
-    return prisma.chapter.findMany({
+    const chapters = await prisma.chapter.findMany({
       where: { archivedAt: null },
       orderBy: { number: 'asc' },
       include: {
@@ -46,6 +47,7 @@ export const getCachedLibrary = unstable_cache(
         },
       },
     });
+    return sortChapterGoalsPhases(chapters);
   },
   ['chapter-library'],
   { revalidate: 3600, tags: ['chapter-library'] }

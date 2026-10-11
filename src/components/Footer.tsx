@@ -12,7 +12,7 @@ export default function Footer() {
         style={{ clipPath: 'polygon(0 34px, 84% 2px, 100% 34px, 100% 100%, 0 100%)' }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-10">
+      <div className="relative max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-24 pb-10">
         <div className="grid gap-12 md:grid-cols-2">
           <section>
             <h2 className="text-xl font-extrabold">Connect!</h2>

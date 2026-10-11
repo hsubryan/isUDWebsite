@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getCachedLibrary } from '@/lib/libraryCache';
 import { sortChecklistHierarchy } from '@/lib/naturalSort';
+import { sortPhases, sortGoals } from '@/lib/phaseGoalOrder';
 
 export async function GET(
   req: Request,
@@ -59,8 +60,8 @@ export async function GET(
       getCachedLibrary(),
       prisma.projectResponse.findMany({ where: { projectId: id } }),
       prisma.sectionToggle.findMany({ where: { projectId: id } }),
-      prisma.phase.findMany({ where: { archivedAt: null }, orderBy: { name: 'asc' } }),
-      prisma.goal.findMany({ where: { archivedAt: null }, orderBy: { text: 'asc' } }),
+      prisma.phase.findMany({ where: { archivedAt: null } }),
+      prisma.goal.findMany({ where: { archivedAt: null } }),
     ]);
 
     const chapters = sortChecklistHierarchy(rawChapters);
@@ -69,8 +70,8 @@ export async function GET(
       chapters,
       responses,
       toggles,
-      allPhases,
-      allGoals,
+      allPhases: sortPhases(allPhases),
+      allGoals: sortGoals(allGoals),
       userRole,
       userStatus,
     });
