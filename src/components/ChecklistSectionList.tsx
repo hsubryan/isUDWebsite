@@ -166,7 +166,7 @@ export const ChecklistSectionList: React.FC<SectionListProps> = ({
           }
 
           return (
-            <div key={section.id} className={`relative group/sec transition-opacity ${isSectionEnabled ? '' : 'opacity-70'}`}>
+            <div key={section.id} id={`checklist-section-${section.id}`} className={`relative group/sec scroll-mt-4 transition-opacity ${isSectionEnabled ? '' : 'opacity-70'}`}>
               <div className="flex items-center justify-between mb-4 bg-white py-2">
                 <div className="flex items-center gap-4">
                   <span className="text-xl font-bold text-primary">{displaySectionNumber}</span>

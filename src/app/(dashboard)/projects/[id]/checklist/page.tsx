@@ -52,10 +52,25 @@ export default function ChecklistPage({ params }: { params: Promise<Params> }) {
   const [allPhases, setAllPhases] = useState<any[]>(cachedPayload?.allPhases || []);
   const [allGoals, setAllGoals] = useState<any[]>(cachedPayload?.allGoals || []);
   const chapterScrollRef = useRef<HTMLDivElement | null>(null);
+  const pendingSectionScrollRef = useRef<string | null>(null);
+
+  const scrollSectionIntoView = useCallback((sectionId: string) => {
+    const container = chapterScrollRef.current;
+    const target = document.getElementById(`checklist-section-${sectionId}`);
+    if (!container || !target) return;
+    const offset = target.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - 16;
+    container.scrollTo({ top: Math.max(offset, 0), behavior: 'smooth' });
+  }, []);
 
   useEffect(() => {
-    chapterScrollRef.current?.scrollTo({ top: 0 });
-  }, [activeChapterId]);
+    if (pendingSectionScrollRef.current) {
+      const sectionId = pendingSectionScrollRef.current;
+      pendingSectionScrollRef.current = null;
+      requestAnimationFrame(() => scrollSectionIntoView(sectionId));
+    } else {
+      chapterScrollRef.current?.scrollTo({ top: 0 });
+    }
+  }, [activeChapterId, scrollSectionIntoView]);
 
   // Local state for edits
   const [responses, setResponses] = useState<Record<string, ResponseStatus>>(() => cachedPayload ? toResponseMap(cachedPayload.responses) : {});
@@ -403,6 +418,15 @@ export default function ChecklistPage({ params }: { params: Promise<Params> }) {
           activeChapterId={activeChapterId}
           onChapterSelect={(chapterId) => {
             if (confirmNavigation()) setActiveChapterId(chapterId);
+          }}
+          onSectionSelect={(chapterId, sectionId) => {
+            if (!confirmNavigation()) return;
+            if (activeChapterId === chapterId) {
+              scrollSectionIntoView(sectionId);
+            } else {
+              pendingSectionScrollRef.current = sectionId;
+              setActiveChapterId(chapterId);
+            }
           }}
         />
 
