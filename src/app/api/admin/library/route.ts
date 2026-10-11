@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { requireAdminSession } from '@/lib/adminAuth';
 import { compareNumericText, sortChecklistHierarchy } from '@/lib/naturalSort';
+import { sortPhases, sortGoals, sortChapterGoalsPhases } from '@/lib/phaseGoalOrder';
 import { prisma } from '@/lib/prisma';
 
 type Resource = 'chapter' | 'section' | 'subSection' | 'solution' | 'figure' | 'goal' | 'phase' | 'facilityUse';
@@ -103,7 +104,7 @@ function archivedOnlyWhere(showArchived: boolean) {
 }
 
 async function getLibrary(showArchived: boolean) {
-  const chapters = sortChecklistHierarchy(await prisma.chapter.findMany({
+  const chapters = sortChapterGoalsPhases(sortChecklistHierarchy(await prisma.chapter.findMany({
     where: archivedWhere(showArchived),
     include: {
       sections: {
@@ -122,11 +123,9 @@ async function getLibrary(showArchived: boolean) {
             include: {
               goals: {
                 where: archivedWhere(showArchived),
-                orderBy: { text: 'asc' },
               },
               phases: {
                 where: archivedWhere(showArchived),
-                orderBy: { name: 'asc' },
               },
               figures: {
                 where: archivedWhere(showArchived),
@@ -137,15 +136,15 @@ async function getLibrary(showArchived: boolean) {
         },
       },
     },
-  }));
+  })));
 
   const [goals, phases, facilityUses] = await Promise.all([
-    prisma.goal.findMany({ where: archivedWhere(showArchived), orderBy: { text: 'asc' } }),
-    prisma.phase.findMany({ where: archivedWhere(showArchived), orderBy: { name: 'asc' } }),
+    prisma.goal.findMany({ where: archivedWhere(showArchived) }),
+    prisma.phase.findMany({ where: archivedWhere(showArchived) }),
     prisma.facilityUse.findMany({ where: archivedWhere(showArchived), orderBy: { name: 'asc' } }),
   ]);
 
-  return { chapters, goals, phases, facilityUses };
+  return { chapters, goals: sortGoals(goals), phases: sortPhases(phases), facilityUses };
 }
 
 export async function GET(req: Request) {

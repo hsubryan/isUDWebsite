@@ -58,8 +58,8 @@ export default function InvitationBanner() {
   if (loading || invitations.length === 0) return null;
 
   return (
-    <div className="bg-[#002a54] text-white py-3 px-4 sm:px-6 lg:px-8 border-b border-white/10 shadow-lg animate-in slide-in-from-top duration-500 sticky top-0 z-[60]">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+    <div className="bg-[#002a54] text-white py-3 px-4 sm:px-6 lg:px-8 xl:px-12 border-b border-white/10 shadow-lg animate-in slide-in-from-top duration-500 sticky top-0 z-[60]">
+      <div className="max-w-[1800px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="bg-white/20 p-2 rounded-lg">
             <Bell size={20} className="text-[#F7941D]" aria-hidden="true" />
