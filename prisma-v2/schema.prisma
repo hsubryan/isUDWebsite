@@ -1,0 +1,177 @@
+// DB 2.0 — new, experimental schema designed from the "isUD 2.0 Master" workbook.
+// Entirely separate database/datasource from prisma/schema.prisma (the live 1.0
+// production schema). This file is never touched by `npm run build` or any
+// production deploy step — only by the db2:* scripts in package.json, which
+// explicitly pass --schema=prisma-v2/schema.prisma.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma-v2"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL_V2")
+  directUrl = env("DIRECT_URL_V2")
+}
+
+enum HeadingLevel {
+  H1
+  H2
+  H3
+  H4
+  H5
+}
+
+// Self-referential chapter/section/subsection/... tree. Unlike 1.0's fixed
+// Chapter -> Section -> SubSection, this supports arbitrary depth since H4/H5
+// levels are expected later.
+model Heading {
+  id         String       @id @default(uuid())
+  level      HeadingLevel
+  parentId   String?
+  parent     Heading?     @relation("HeadingToHeading", fields: [parentId], references: [id], onDelete: Cascade)
+  children   Heading[]    @relation("HeadingToHeading")
+
+  // Dual numbering kept side by side to support a future 1.0 -> 2.0 migration
+  // mapping. Stored as String since values like "001-007" appear.
+  v1Number   String?
+  v2Number   String?
+
+  title      String
+
+  // This node's own credit value, plus an optional rollup override.
+  credits    Float?
+  maxCredits Float?
+  itemCount  Int?
+
+  // Point-based thresholds, kept for reference/backward compatibility.
+  minPoints1 Int?
+  minPoints2 Int?
+  minPoints3 Int?
+
+  // Percent-based thresholds - the primary scoring mechanism going forward.
+  minPercent1 Float?
+  minPercent2 Float?
+  minPercent3 Float?
+
+  instruction         String?
+  designResource      String?
+  detailedInstruction String?
+
+  sortOrder  Int       @default(0)
+  archivedAt DateTime?
+
+  solutions        Solution[]
+  facilityUseTypes FacilityUseType[]     @relation("FacilityUseTypeToHeading")
+  facilityLocks    HeadingFacilityLock[]
+}
+
+// Which facility-use types are "locked ON" (forced applicable to every
+// solution under a heading) rather than merely available - a distinct
+// concept from the plain Heading <-> FacilityUseType availability relation.
+model HeadingFacilityLock {
+  id             String          @id @default(uuid())
+  headingId      String
+  facilityTypeId String
+  heading        Heading         @relation(fields: [headingId], references: [id], onDelete: Cascade)
+  facilityType   FacilityUseType @relation(fields: [facilityTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([headingId, facilityTypeId])
+}
+
+enum SolutionStatus {
+  DRAFT
+  FINAL
+  PUBLISHED
+}
+
+model Solution {
+  id        String  @id @default(uuid())
+  refNumber Int?
+  // e.g. "1.1.1" - migration aid back to the 1.0 standardNumber.
+  v1StandardNumber String?
+  // The sheet's v2_Heading_No column - the solution's new number under the
+  // 2.0 numbering scheme (e.g. "8.1", "603.3.2"). Stored as String since
+  // values aren't uniformly decimal (e.g. "T204.1").
+  v2Number String?
+
+  headingId String
+  heading   Heading @relation(fields: [headingId], references: [id], onDelete: Cascade)
+  sortOrder Int     @default(0)
+
+  text   String
+  status SolutionStatus @default(DRAFT)
+
+  naBox    Boolean @default(false)
+  required Boolean @default(false)
+  points   Float   @default(0)
+
+  // Raw from the sheet; exact scoring semantics aren't needed yet (scoring
+  // logic is explicitly future work), stored as-is for now.
+  instructionSubpart Int?
+  instruction         String?
+
+  archivedAt DateTime?
+
+  goals            Goal[]            @relation("GoalToSolution")
+  phases           Phase[]           @relation("PhaseToSolution")
+  categories       Category[]        @relation("CategoryToSolution")
+  facilityUseTypes FacilityUseType[] @relation("FacilityUseTypeToSolution")
+  figures          Figure[]
+}
+
+model Figure {
+  id         String   @id @default(uuid())
+  solutionId String
+  solution   Solution @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+
+  // "A" | "B" | "C" | "D" - the sheet caps figures at 4 named slots per solution.
+  slot    String
+  number  String?
+  caption String?
+  altTag  String?
+  status  String?
+  url     String?
+
+  archivedAt DateTime?
+
+  @@unique([solutionId, slot])
+}
+
+model Goal {
+  id         String     @id @default(uuid())
+  abbr       String     @unique
+  text       String     @unique
+  archivedAt DateTime?
+  solutions  Solution[] @relation("GoalToSolution")
+}
+
+model Phase {
+  id         String     @id @default(uuid())
+  name       String     @unique
+  archivedAt DateTime?
+  solutions  Solution[] @relation("PhaseToSolution")
+}
+
+// Beneficiary-population categories (new in 2.0 - doesn't exist in 1.0 at all).
+model Category {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  archivedAt  DateTime?
+  solutions   Solution[] @relation("CategoryToSolution")
+}
+
+// Flat list, name stored exactly as in the sheet (including ">" for grouped
+// names like "Assembly > Theaters") - matches how 1.0's FacilityUse already
+// works, just with the new, more granular set of 25 types.
+model FacilityUseType {
+  id         String    @id @default(uuid())
+  name       String    @unique
+  archivedAt DateTime?
+
+  headings  Heading[]             @relation("FacilityUseTypeToHeading")
+  solutions Solution[]            @relation("FacilityUseTypeToSolution")
+  locks     HeadingFacilityLock[]
+}
