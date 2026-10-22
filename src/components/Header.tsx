@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { useState } from 'react';
-import { FolderKanban, BookOpen, Library, UserCircle, Home, LogOut, User, ShieldCheck, Users, ClipboardCheck } from 'lucide-react';
+import { FolderKanban, BookOpen, Library, UserCircle, Home, LogOut, User, ShieldCheck, Users, ClipboardCheck, Database } from 'lucide-react';
 import { clearClientCache } from '@/lib/clientCache';
 
 export default function Header() {
@@ -81,6 +81,15 @@ export default function Header() {
                     >
                       <ShieldCheck size={16} aria-hidden="true" />
                       <span className="font-medium">Modify Solutions</span>
+                    </Link>
+                    <Link
+                      href="/admin/db2"
+                      role="menuitem"
+                      onClick={closeAdminMenu}
+                      className="flex items-center space-x-3 px-4 py-3 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-primary"
+                    >
+                      <Database size={16} aria-hidden="true" />
+                      <span className="font-medium">DB 2.0</span>
                     </Link>
                     <Link
                       href="/admin/users"

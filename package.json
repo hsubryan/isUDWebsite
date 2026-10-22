@@ -5,13 +5,16 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "prebuild": "node scripts/guard-dev-server.cjs && node scripts/clean-next-cache.cjs",
-    "build": "prisma migrate deploy && prisma generate && next build",
+    "build": "prisma migrate deploy && prisma generate && prisma generate --schema=prisma-v2/schema.prisma && next build",
     "start": "next start",
     "lint": "eslint",
     "smoke": "node scripts/check-css-assets.cjs",
     "figures:import": "node scripts/import-figure-images.cjs",
     "legacy:dry-run": "node scripts/import-legacy-data.cjs",
-    "legacy:import": "node scripts/import-legacy-data.cjs --apply"
+    "legacy:import": "node scripts/import-legacy-data.cjs --apply",
+    "db2:generate": "prisma generate --schema=prisma-v2/schema.prisma",
+    "db2:migrate": "prisma migrate dev --schema=prisma-v2/schema.prisma",
+    "db2:studio": "prisma studio --schema=prisma-v2/schema.prisma"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
