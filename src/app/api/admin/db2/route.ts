@@ -109,7 +109,7 @@ async function getLibrary(showArchived: boolean) {
     }),
     prismaV2.solution.findMany({
       where: archivedWhere(showArchived),
-      orderBy: { sortOrder: 'asc' },
+      orderBy: [{ v2Number: 'asc' }, { sortOrder: 'asc' }],
       include: { goals: true, phases: true, categories: true, facilityUseTypes: true, figures: { where: archivedWhere(showArchived) } },
     }),
     prismaV2.goal.findMany({ where: archivedWhere(showArchived), orderBy: { text: 'asc' } }),
@@ -168,6 +168,9 @@ async function createResource(resource: Resource, data: any) {
       const categoryIds = idArray(data.categoryIds, 'Categories');
       const facilityUseTypeIds = idArray(data.facilityUseTypeIds, 'Facility use types');
       const headingId = stringField('Heading', data.headingId, { required: true, max: 80 });
+      const requestedSortOrder = data.sortOrder === undefined || data.sortOrder === null || data.sortOrder === ''
+        ? null
+        : numberValue('Sort order', data.sortOrder);
       const siblingMax = await prismaV2.solution.aggregate({
         where: { headingId, archivedAt: null },
         _max: { sortOrder: true },
@@ -185,7 +188,7 @@ async function createResource(resource: Resource, data: any) {
           points: numberValue('Points', data.points),
           instructionSubpart: nullableNumber('Instruction subpart', data.instructionSubpart),
           instruction: nullableString('Instruction', data.instruction),
-          sortOrder: (siblingMax._max.sortOrder ?? 0) + 1,
+          sortOrder: requestedSortOrder ?? (siblingMax._max.sortOrder ?? 0) + 1,
           goals: goalIds ? { connect: goalIds.map((id: string) => ({ id })) } : undefined,
           phases: phaseIds ? { connect: phaseIds.map((id: string) => ({ id })) } : undefined,
           categories: categoryIds ? { connect: categoryIds.map((id: string) => ({ id })) } : undefined,
@@ -273,6 +276,7 @@ async function updateResource(resource: Resource, id: string, data: any) {
           points: numberValue('Points', data.points),
           instructionSubpart: nullableNumber('Instruction subpart', data.instructionSubpart),
           instruction: nullableString('Instruction', data.instruction),
+          sortOrder: numberValue('Sort order', data.sortOrder),
           goals: goalIds ? { set: goalIds.map((goalId: string) => ({ id: goalId })) } : undefined,
           phases: phaseIds ? { set: phaseIds.map((phaseId: string) => ({ id: phaseId })) } : undefined,
           categories: categoryIds ? { set: categoryIds.map((categoryId: string) => ({ id: categoryId })) } : undefined,
