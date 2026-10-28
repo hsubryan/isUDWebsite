@@ -122,6 +122,13 @@ function isArchived(item: { archivedAt?: string | null }) {
   return Boolean(item.archivedAt);
 }
 
+function compareByV2NumberThenSortOrder(a: Solution, b: Solution) {
+  const av = a.v2Number || '';
+  const bv = b.v2Number || '';
+  if (av !== bv) return av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
+  return a.sortOrder - b.sortOrder;
+}
+
 function inputClass() {
   return 'h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/25';
 }
@@ -160,7 +167,7 @@ export default function AdminDb2Client() {
       if (!map.has(solution.headingId)) map.set(solution.headingId, []);
       map.get(solution.headingId)!.push(solution);
     }
-    for (const list of map.values()) list.sort((a, b) => a.sortOrder - b.sortOrder);
+    for (const list of map.values()) list.sort(compareByV2NumberThenSortOrder);
     return map;
   }, [library.solutions]);
 
@@ -739,12 +746,8 @@ function EditForm({
               <Field label="v2 number" value={item.v2Number} onChange={(value) => update({ v2Number: value })} />
               <Field label="Credits" type="number" value={item.credits} onChange={(value) => update({ credits: value })} />
               <Field label="Max credits" type="number" value={item.maxCredits} onChange={(value) => update({ maxCredits: value })} />
-              <Field label="Item count" type="number" value={item.itemCount} onChange={(value) => update({ itemCount: value })} />
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Field label="Min points 1" type="number" value={item.minPoints1} onChange={(value) => update({ minPoints1: value })} />
-              <Field label="Min points 2" type="number" value={item.minPoints2} onChange={(value) => update({ minPoints2: value })} />
-              <Field label="Min points 3" type="number" value={item.minPoints3} onChange={(value) => update({ minPoints3: value })} />
               <Field label="Min percent 1" type="number" value={item.minPercent1} onChange={(value) => update({ minPercent1: value })} />
               <Field label="Min percent 2" type="number" value={item.minPercent2} onChange={(value) => update({ minPercent2: value })} />
               <Field label="Min percent 3" type="number" value={item.minPercent3} onChange={(value) => update({ minPercent3: value })} />
@@ -775,7 +778,7 @@ function EditForm({
               <Field label="v1 standard number (old)" value={item.v1StandardNumber} onChange={(value) => update({ v1StandardNumber: value })} />
               <Field label="Ref number" type="number" value={item.refNumber} onChange={(value) => update({ refNumber: value })} />
               <Field label="Points" type="number" value={item.points} onChange={(value) => update({ points: value })} />
-              <Field label="Instruction subpart" type="number" value={item.instructionSubpart} onChange={(value) => update({ instructionSubpart: value })} />
+              <Field label="Sort order" type="number" value={item.sortOrder} onChange={(value) => update({ sortOrder: value })} />
               <label className="flex h-10 items-center gap-2 self-end rounded-md border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-700">
                 <input type="checkbox" checked={Boolean(item.required)} onChange={(event) => update({ required: event.target.checked })} className="h-4 w-4 accent-primary" />
                 Required
@@ -786,7 +789,6 @@ function EditForm({
               </label>
             </div>
             <TextArea label="Solution text" value={item.text} onChange={(value) => update({ text: value })} minHeightClass="min-h-32" />
-            <TextArea label="Instruction" value={item.instruction} onChange={(value) => update({ instruction: value })} />
             <CheckboxGroup label="Goals" values={(item.goalIds || []) as string[]} options={goals.map((goal) => ({ value: goal.id, label: `${goal.abbr}: ${goal.text}` }))} onChange={(values) => update({ goalIds: values })} />
             <CheckboxGroup label="Phases" values={(item.phaseIds || []) as string[]} options={phases.map((phase) => ({ value: phase.id, label: phase.name }))} onChange={(values) => update({ phaseIds: values })} />
             <CheckboxGroup label="Categories" values={(item.categoryIds || []) as string[]} options={categories.map((category) => ({ value: category.id, label: category.name }))} onChange={(values) => update({ categoryIds: values })} />
