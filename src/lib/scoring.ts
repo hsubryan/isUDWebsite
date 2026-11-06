@@ -178,15 +178,25 @@ export function calculateProjectScore(
   const toggleMap = new Map(toggles.map((t) => [t.sectionId, t.isEnabled]));
   const responseMap = new Map(responses.map((r) => [r.solutionId, r.status]));
 
-  let totalBonus = 0;
   const failedSections: string[] = [];
   const missingMandatorySectionsSet = new Set<string>();
 
-  // 1 bonus credit for every 5 solutions implemented beyond a group's requirement
+  // Pool every implemented solution that isn't already counting toward a
+  // credit in its own group - either because the group fell short of its
+  // first tier (credits === 0, so none of its implemented solutions count),
+  // or because it was implemented beyond the tier the group actually reached
+  // (surplus). 1 bonus credit is awarded for every 5 of these, cumulative
+  // across the whole project - not per-section, since flooring per-section
+  // loses remainders at section boundaries (e.g. 4 leftover in one section
+  // and 4 in another should combine into 1 bonus, not 0 + 0).
+  let leftoverSelections = 0;
   function addBonus(credits: number, implementedCount: number, thresholdReached: number) {
-    if (credits <= 0) return;
+    if (credits <= 0) {
+      leftoverSelections += implementedCount;
+      return;
+    }
     const surplus = implementedCount - thresholdReached;
-    if (surplus >= 5) totalBonus += Math.floor(surplus / 5);
+    if (surplus > 0) leftoverSelections += surplus;
   }
 
   const chapterScores = chapters.map((chapter) => {
@@ -278,7 +288,7 @@ export function calculateProjectScore(
   });
 
   const totalScore = chapterScores.reduce((sum, ch) => sum + ch.earned, 0);
-  const finalBonus = Math.min(totalBonus, 10);
+  const finalBonus = Math.min(Math.floor(leftoverSelections / 5), 10);
   const activeSectionsCount = chapters.reduce((cnt, ch) => {
     return cnt + ch.sections.filter(s => toggleMap.get(s.id) !== false).length;
   }, 0);
