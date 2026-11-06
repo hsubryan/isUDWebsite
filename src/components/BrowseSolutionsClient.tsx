@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Image as ImageIcon, Images, Minus, Plus, Printer, Search } from 'lucide-react';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
+import GoalTooltip from '@/components/GoalTooltip';
+import { GOAL_DEFINITIONS } from '@/lib/goalDefinitions';
 
 type Solution = {
   id: string;
@@ -188,6 +190,7 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search solutions"
                 className="h-11 w-full min-w-72 rounded-md border border-slate-200 bg-white pl-10 pr-3 text-sm font-medium text-slate-700 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+                suppressHydrationWarning
               />
             </label>
             <button
@@ -380,7 +383,23 @@ export default function BrowseSolutionsClient({ chapters }: BrowseSolutionsClien
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                       <div>
                                         <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Goals of UD</p>
-                                        <p className="mt-1">{solution.goals.map((goal) => goal.text).join(', ') || 'None listed'}</p>
+                                        <div className="mt-1 flex flex-wrap gap-x-6 gap-y-2">
+                                          {Object.keys(GOAL_DEFINITIONS).map((name) => {
+                                            const isMatched = solution.goals.some((goal) => goal.text === name);
+                                            const label = (
+                                              <div className={isMatched ? 'text-slate-900 font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200' : 'text-slate-600'}>
+                                                {name}
+                                              </div>
+                                            );
+                                            return isMatched ? (
+                                              <GoalTooltip key={name} text={name}>
+                                                {label}
+                                              </GoalTooltip>
+                                            ) : (
+                                              <div key={name}>{label}</div>
+                                            );
+                                          })}
+                                        </div>
                                       </div>
                                       <div>
                                         <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Phases</p>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Plus, Minus, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ResponseStatus } from '@prisma/client';
+import GoalTooltip from './GoalTooltip';
 
 interface SolutionProps {
   solution: any;
@@ -122,10 +123,17 @@ export const ChecklistSolutionItem: React.FC<SolutionProps> = ({
                     <div className="flex flex-wrap gap-x-6 gap-y-2">
                       {allGoals.map((g) => {
                         const isMatched = solution.goals.some((go: any) => go.text === g.text);
-                        return (
-                          <div key={g.id} className={`${isMatched ? 'text-slate-900 font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200' : 'text-slate-600'}`}>
+                        const label = (
+                          <div className={`${isMatched ? 'text-slate-900 font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200' : 'text-slate-600'}`}>
                             {g.text}
                           </div>
+                        );
+                        return isMatched ? (
+                          <GoalTooltip key={g.id} text={g.text}>
+                            {label}
+                          </GoalTooltip>
+                        ) : (
+                          <div key={g.id}>{label}</div>
                         );
                       })}
                     </div>
