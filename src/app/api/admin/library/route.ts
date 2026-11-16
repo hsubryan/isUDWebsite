@@ -190,6 +190,9 @@ async function createResource(resource: Resource, data: any) {
           number: stringField('Subsection number', data.number, { required: true, max: 40 }),
           title: stringField('Subsection title', data.title, { required: true, max: 240 }),
           totalCredits: numberValue('Total credits', data.totalCredits),
+          minPoints1: Math.trunc(numberValue('Minimum points 1', data.minPoints1)),
+          minPoints2: Math.trunc(numberValue('Minimum points 2', data.minPoints2)),
+          minPoints3: Math.trunc(numberValue('Minimum points 3', data.minPoints3)),
         },
       });
     case 'solution': {
@@ -273,6 +276,9 @@ async function updateResource(resource: Resource, id: string, data: any) {
           number: stringField('Subsection number', data.number, { required: true, max: 40 }),
           title: stringField('Subsection title', data.title, { required: true, max: 240 }),
           totalCredits: numberValue('Total credits', data.totalCredits),
+          minPoints1: Math.trunc(numberValue('Minimum points 1', data.minPoints1)),
+          minPoints2: Math.trunc(numberValue('Minimum points 2', data.minPoints2)),
+          minPoints3: Math.trunc(numberValue('Minimum points 3', data.minPoints3)),
         },
       });
     case 'solution': {

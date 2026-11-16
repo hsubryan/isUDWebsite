@@ -67,6 +67,9 @@ type SubSection = {
   number: string;
   title: string;
   totalCredits: number;
+  minPoints1: number;
+  minPoints2: number;
+  minPoints3: number;
   sectionId: string;
   archivedAt: string | null;
 };
@@ -897,6 +900,9 @@ function EditForm({
           {item.id && <Field label="Number" value={item.number} onChange={(value) => update({ number: value })} />}
           <Field label="Total credits" type="number" value={item.totalCredits} onChange={(value) => update({ totalCredits: value })} />
           <Field label="Title" value={item.title} onChange={(value) => update({ title: value })} wide />
+          <Field label="Min points 1" type="number" value={item.minPoints1} onChange={(value) => update({ minPoints1: value })} />
+          <Field label="Min points 2" type="number" value={item.minPoints2} onChange={(value) => update({ minPoints2: value })} />
+          <Field label="Min points 3" type="number" value={item.minPoints3} onChange={(value) => update({ minPoints3: value })} />
         </div>
       )}
 
