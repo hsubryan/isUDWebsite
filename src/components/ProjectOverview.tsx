@@ -186,6 +186,11 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
     );
   }
 
+  // Same formula as the project list's score circle (ProjectTable.tsx) -
+  // a percentage, not raw earned credits, so this doesn't just duplicate
+  // the "Earned" figure shown in the Earned Credits card below.
+  const displayScore = project.certificationStatus?.scorePercentage ?? (project.totalEarned + project.bonus);
+
   const isSubmitted = project.status === 'IN_REVIEW';
   const isCertified = project.status === 'COMPLETED';
   const canSubmitProject = Boolean(
@@ -425,12 +430,12 @@ export default function ProjectOverview({ id: propId }: { id?: string }) {
                     cx="64" cy="64" r="56"
                     stroke="#002a54" strokeWidth="6" fill="none"
                     strokeDasharray={2 * Math.PI * 56}
-                    strokeDashoffset={2 * Math.PI * 56 * (1 - (project.totalAvailable > 0 ? project.totalEarned / project.totalAvailable : 0))}
+                    strokeDashoffset={2 * Math.PI * 56 * (1 - Math.min(Math.max(displayScore, 0), 100) / 100)}
                     strokeLinecap="round"
                     className="transition-all duration-700"
                   />
                 </svg>
-                <span className="absolute text-3xl font-bold text-primary">{project.totalEarned}</span>
+                <span className="absolute text-3xl font-bold text-primary">{Math.round(displayScore)}%</span>
               </div>
             </div>
           </div>
