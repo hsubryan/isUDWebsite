@@ -6,10 +6,11 @@ import Image from 'next/image';
 export default function MarketingHeader() {
   const navItems = [
     { label: 'Home', href: '/' },
-    { label: 'Services', href: '/services' },
-    { label: 'Process', href: '/process' },
-    { label: 'Resources', href: '/resources' },
-    { label: 'About', href: '/about' },
+    { label: 'Services', href: 'https://thisisud.com/services/' },
+    { label: 'Process', href: 'https://thisisud.com/process/' },
+    { label: 'Resources', href: 'https://thisisud.com/resources/' },
+    { label: 'About', href: 'https://thisisud.com/about/' },
+    { label: 'Contact', href: 'https://thisisud.com/contact/' },
     { label: 'Account', href: '/register' },
   ];
 
